@@ -1,4 +1,4 @@
-bacon.router
-============
+bacon.app
+=========
 
-application event manager implemented by bacon.js.
+MVW application framework implemented with bacon.js.
