@@ -1,4 +1,4 @@
-namespace('bacon.app', function(ns) {
+namespace('Bacon.app', function(ns) {
 
     'use strict';
 

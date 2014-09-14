@@ -1,4 +1,4 @@
-namespace('bacon.app', function(ns) {
+namespace('Bacon.app', function(ns) {
 
     'use strict';
 
@@ -56,7 +56,7 @@ namespace('bacon.app', function(ns) {
     }
 
     function _toEntity(result) {
-        return new bacon.app.Entity(result);
+        return new Bacon.app.Entity(result);
     }
 
     function _toEntities(result) {

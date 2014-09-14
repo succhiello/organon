@@ -1,10 +1,10 @@
-namespace('bacon.app.storage', function(ns) {
+namespace('Bacon.app.storage', function(ns) {
 
     'use strict';
 
     var RESTApiStorage = ns.RESTApiStorage = function RESTApiStorage(properties) {
 
-        bacon.app.Storage.call(this, properties);
+        Bacon.app.Storage.call(this, properties);
 
         this.pathPrefix = this.pathPrefix || '';
         this.deleteMethod = this.deleteMethod || 'delete';

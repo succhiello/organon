@@ -1,4 +1,4 @@
-namespace('bacon', function(ns) {
+namespace('Bacon', function(ns) {
 
     'use strict';
 
@@ -218,7 +218,7 @@ namespace('bacon', function(ns) {
     }
 });
 
-bacon.app.on('ready', function(app) {
+Bacon.app.on('ready', function(app) {
 
     $(app.config.body).clickE(app.config.link)
         .doAction('.preventDefault')
