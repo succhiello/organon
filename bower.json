@@ -1,0 +1,20 @@
+{
+  "name": "bacon.app",
+  "version": "0.0.1",
+  "homepage": "https://github.com/xica/bacon.app",
+  "authors": [
+    "XICA developer team <info@xica.net>"
+  ],
+  "description": "MVW application framework implemented with bacon.js",
+  "keywords": [
+    "bacon.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
