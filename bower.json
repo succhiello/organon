@@ -1,11 +1,11 @@
 {
   "name": "bacon.app",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "https://github.com/xica/bacon.app",
   "authors": [
     "XICA developer team <info@xica.net>"
   ],
-  "description": "MVW application framework implemented with bacon.js",
+  "description": "MVW application framework implemented with Bacon.js",
   "keywords": [
     "bacon.js"
   ],
