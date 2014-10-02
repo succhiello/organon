@@ -1,55 +1,45 @@
-namespace('Bacon', function(ns) {
+namespace('organon', function(ns) {
 
     'use strict';
 
-    var _proxyEvents = {
-        initialize: new Bacon.Bus(),
-        ready: new Bacon.Bus()
+    var _app = null,
+        _appEvent = new Bacon.Bus();
+
+    ns.run = function run(config) {
+        _app = new _App(config);
     };
 
-    ns.app = (function(){
+    ns.app = function app() {
+        return _app;
+    };
 
-        var _app = null,
-            _events = _.mapValues(_proxyEvents, function(v) {
-                return v.toProperty(null).skipDuplicates()
-                        .where().truthy();
-            });
+    ns.on = function(eventInfo, f) {
+        return _on(_appEvent, eventInfo, f);
+    };
 
-        function _initialize(config) {
-            _app = new _App(config);
+    ns.onInitialize = function(f) {
+        return _on(_appEvent, 'initialize', f);
+    };
+
+    ns.onReady = function(f) {
+        return _on(_appEvent, 'ready', f);
+    };
+
+    ns.define = ns.inherit = function define(base, derived, properties) {
+
+        if (arguments.length < 2) {
+            throw new Error('too few arguments.');
         }
 
-        function _get() {
-            return _app;
+        if (_.isPlainObject(derived)) {
+            properties = derived;
+            derived = function() { base.apply(this, arguments); };
         }
 
-        function _on(eventName, f) {
-            _events[eventName].onValue(f);
-        }
+        derived.prototype = _.create(base.prototype, _.assign(properties || {}, {constructor: derived}));
+        return derived;
+    };
 
-        function _define(base, derived, properties) {
-
-            if (arguments.length < 2) {
-                throw new Error('too few arguments.');
-            }
-
-            if (_.isPlainObject(derived)) {
-                properties = derived;
-                derived = function() { base.apply(this, arguments); };
-            }
-
-            derived.prototype = _.create(base.prototype, _.assign(properties || {}, {constructor: derived}));
-            return derived;
-        }
-
-        return {
-            initialize: _initialize,
-            get: _get,
-            on: _on,
-            define: _define,
-            inherit: _define,
-        };
-    })();
 
     function _App(config) {
 
@@ -59,7 +49,7 @@ namespace('Bacon', function(ns) {
             return location.hash.length > 0 ?
                    location.hash.slice(1) :
                    location.pathname + location.search;
-        }
+        };
 
         this.config = _.defaults(config, {
             body: 'body',
@@ -79,27 +69,20 @@ namespace('Bacon', function(ns) {
         }),
             _event = new Bacon.Bus(),
             _path = new Bacon.Bus(),
-            _eventNames = [
-                'preLoadView',
-                'loadView',
-                'postLoadView',
-                'preRenderView',
-                'renderView',
-                'postRenderView',
-            ],
+            _view = new Bacon.Bus(),
             self = this;
 
         this.observe = function observe(eventInfo, f) {
-            return _onValue(_event.where().containerOf(eventInfo), f);
-        }
+            return _observe(_event, eventInfo, f);
+        };
 
         this.on = function on(eventInfo, f) {
-            return _onValue(this.observe(_makeEventInfo(eventInfo)).map('.params'), f);
-        }
+            return _on(_event, eventInfo, f);
+        };
 
         this.trigger = function trigger(eventName, value, params) {
-            _event.push({event: eventName, value: value, params: params})
-        }
+            _trigger(_event, eventName, value, params);
+        };
 
         this.route = function route(path, params) {
             if (params) {
@@ -107,53 +90,39 @@ namespace('Bacon', function(ns) {
             }
             history.pushState(null, null, path);
             this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
-        }
+        };
 
         this.loadView = function loadView(view, params) {
-            this.trigger('preLoadView', view, params);
-            this.trigger('loadView', view, params);
-            this.trigger('postLoadView', view, params);
+            _view.push({view: view, params: params});
         };
 
         this.dispatch = function dispatch(path) {
             _path.push(path || this.currentPath());
-        }
+        };
 
-        _.each(_eventNames, function(event) {
-            self['on' + _capitalize(event)] = function(value, f) {
-                return self.on({event: event, value: value}, f);
+        _addEventRegisters(this, [
+            'preLoadView', 'loadView', 'postLoadView',
+            'preRenderView', 'renderView', 'postRenderView',
+            'leaveView'
+        ]);
+
+        _event.plug(Bacon.mergeAll(
+            _view.map(_makeViewEventInfo, 'preLoadView'),
+            _view.map(_makeViewEventInfo, 'loadView'),
+            _view.map(_makeViewEventInfo, 'postLoadView')
+        ));
+
+        _view.plug(_path.scan(null, function(viewInfo, path) {
+            if (viewInfo) {
+                self.trigger('leaveView', viewInfo.view);
             }
-        });
+            return _parse(path);
+        }).where().truthy());
 
-        _path.map(_parse).onValue(function(viewInfo) {
-            self.loadView(viewInfo.view, viewInfo.params);
-        });
-
-        _proxyEvents.initialize.push(this);
-        _proxyEvents.initialize.end();
-
-        _proxyEvents.ready.push(this);
-        _proxyEvents.ready.end();
+        _trigger(_appEvent, 'initialize', 'app', this);
+        _trigger(_appEvent, 'ready', 'app', this);
 
         this.dispatch(config.initialPath);
-
-        function _onValue(stream, f) {
-            return _.isUndefined(f) ? stream : stream.onValue(f);
-        }
-
-        function _makeEventInfo(info) {
-            if (_.isObject(info)) {
-                return info;
-            } else if (_.isString(info)) {
-                return _(['event', 'value']).zipObject(info.split(':')).omit(function(v) { return _.isUndefined(v); }).value();
-            } else {
-                throw new TypeError('invalid event info value "' + info + '".');
-            }
-        }
-
-        function _capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
 
         function _parse(path) {
 
@@ -216,9 +185,55 @@ namespace('Bacon', function(ns) {
             return new RegExp('^' + path + '$', sensitive ? '' : 'i');
         }
     }
+
+    function _addEventRegisters(obj, eventNames) {
+        _.each(eventNames, function(event) {
+            obj['on' + _capitalize(event)] = function(value, f) {
+                return obj.on({event: event, value: value}, f);
+            }
+        }, obj);
+    }
+
+    function _capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function _trigger(bus, eventName, value, params) {
+        bus.push({event: eventName, value: value, params: params})
+    }
+
+    function _makeViewEventInfo(eventName, viewInfo) {
+        return {
+            event: eventName,
+            value: viewInfo.view,
+            params: viewInfo.params
+        }
+    }
+
+    function _makeEventInfo(info) {
+        if (_.isObject(info)) {
+            return info;
+        } else if (_.isString(info)) {
+            return _(['event', 'value']).zipObject(info.split(':')).omit(function(v) { return _.isUndefined(v); }).value();
+        } else {
+            throw new TypeError('invalid event info value "' + info + '".');
+        }
+    }
+
+    function _on(stream, eventInfo, f) {
+        return _onValueOrStream(_observe(stream, _makeEventInfo(eventInfo)).map('.params'), f);
+    }
+
+    function _observe(stream, eventInfo, f) {
+        return _onValueOrStream(stream.where().containerOf(eventInfo), f);
+    }
+
+    function _onValueOrStream(stream, f) {
+        return _.isUndefined(f) ? stream : stream.onValue(f);
+    }
 });
 
-Bacon.app.on('ready', function(app) {
+organon.onReady(function(app) {
 
     $(app.config.body).clickE(app.config.link)
         .doAction('.preventDefault')

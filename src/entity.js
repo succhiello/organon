@@ -1,12 +1,10 @@
-namespace('Bacon.app', function(ns) {
+namespace('organon.entity', function(ns) {
 
     'use strict';
 
-    ns.Entity = function Entity(initialValue, properties) {
+    ns.Entity = function Entity(initialValue) {
 
-        var template = _.mapValues(initialValue || {}, Bacon.Model);
-        this.model = Bacon.Model.combine(template);
-        _.assign(this, template);
-    }
+        _.assign(this, initialValue);
+    };
 
 });
