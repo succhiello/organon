@@ -1,4 +1,4 @@
-namespace('Bacon.app', function(ns) {
+namespace('organon.view', function(ns) {
 
     'use strict';
 
@@ -17,16 +17,9 @@ namespace('Bacon.app', function(ns) {
             return _.isPlainObject(v) ? v : { view: v };
         });
 
-        this.template = ns.template[this.name];
+        this.templateNamespace = namespace(this.templateNamespace);
 
-        this.onPreLoad = _.bind(app.onPreLoadView, app, this.name);
-        this.onLoad = _.bind(app.onLoadView, app, this.name);
-        this.onPostLoad = _.bind(app.onPostLoadView, app, this.name);
-
-        this.onPreRender = _.bind(app.onPreRenderView, app, this.name);
-        this.onRender = _.bind(app.onRenderView, app, this.name);
         this.onRender().assign(this, 'renderTemplate', this.name);
-        this.onPostRender = _.bind(app.onPostRenderView, app, this.name);
 
         _.forIn(this.children, function(v) {
             this.onPostRender().map(v.map).assign(v.view, 'render');
@@ -35,6 +28,18 @@ namespace('Bacon.app', function(ns) {
         if (this.initialize) {
             this.initialize.call(this);
         }
+    };
+
+    View.prototype.onPreRender = function onPreRender(f) {
+        return this.app.onPreRenderView(this.name, f);
+    }
+
+    View.prototype.onRender = function onRender(f) {
+        return this.app.onRenderView(this.name, f);
+    }
+
+    View.prototype.onPostRender = function onPostRender(f) {
+        return this.app.onPostRenderView(this.name, f);
     }
 
     View.prototype.renderHTML = function renderHTML(html) {
@@ -42,12 +47,23 @@ namespace('Bacon.app', function(ns) {
     };
 
     View.prototype.renderTemplate = function renderTemplate(name, data) {
-        this.renderHTML(ns.template[name](data));
+        this.renderHTML(this.templateNamespace[name](data));
     };
 
     View.prototype.render = function render(data) {
         this.app.trigger('preRenderView', this.name, data);
         this.app.trigger('renderView', this.name, data);
         this.app.trigger('postRenderView', this.name, data);
+    };
+
+    View.prototype.showElement = function showElement($el, isShown) {
+        if (_.isString($el)) {
+            $el = this.$el.find($el);
+        }
+        if (isShown) {
+            $el.show();
+        } else {
+            $el.hide();
+        }
     };
 });

@@ -1,4 +1,4 @@
-namespace('Bacon.app', function(ns) {
+namespace('organon.storage', function(ns) {
 
     'use strict';
 
@@ -9,13 +9,13 @@ namespace('Bacon.app', function(ns) {
 
     Storage.prototype.setItem = function setItem(path, data) {
         return Bacon.once(this.notImplemented);
-    }
+    };
 
     Storage.prototype.getItem = function getItem(path, params) {
         return Bacon.once(this.notImplemented);
-    }
+    };
 
     Storage.prototype.removeItem = function removeItem(path, params) {
         return Bacon.once(this.notImplemented);
-    }
+    };
 });
