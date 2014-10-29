@@ -14,120 +14,76 @@ namespace('organon.repository', function(ns) {
         this.interface.findAll = _.defaults(this.interface.findAll || {}, {exchanger: _id});
         this.interface.remove = this.interface.remove || {};
 
-        var sinkFunks = {
-            add: _addSink,
-            bulkAdd: _bulkAddSink,
-            update: _updateSink,
-            find: _findSink,
-            findAll: _findAllSink,
-            remove: _removeSink
-        };
-
         this._bus = {};
         this.sink = {};
         this.error = {};
         this.awaiting = {};
         _(this.interface).keys().forEach(function(name) {
             this._bus[name] = new Bacon.Bus();
-            this.sink[name] = sinkFunks[name].call(this, this._bus[name]);
+            this.sink[name] = this[name + 'SinkFactory'](this._bus[name]);
             this.error[name] = this.sink[name].errors();
             this.awaiting[name] = this._bus[name].awaiting(this.sink[name]).skipDuplicates();
         }, this);
+    };
+
+    Repository.defineInterface = function defineInterface(repository_class, name, sinkFactory) {
+
+        repository_class.prototype[name + 'SinkFactory'] = sinkFactory;
+
+        repository_class.prototype[name] = function(arg) {
+            this._bus[name].push(arg);
+        };
+
+        repository_class.prototype[name + 'Once'] = function(arg) {
+            return sinkFactory.call(this, Bacon.once(arg));
+        };
     };
 
     Repository.prototype.getPath = function getPath(func) {
         return this.interface[func].path || this.path;
     };
 
-    Repository.prototype.add = function add(entity) {
-        this._bus.add.push(entity);
-    };
-
-    Repository.prototype.addOnce = function addOnce(entity) {
-        return _addSink.call(this, Bacon.once(entity));
-    }
-
-    Repository.prototype.bulkAdd = function bulkAdd(entities) {
-        this._bus.bulkAdd.push(entities);
-    };
-
-    Repository.prototype.bulkAddOnce = function bulkAddOnce(entities) {
-        return _bulkAddSink.call(this, Bacon.once(entities));
-    }
-
-    Repository.prototype.update = function update(entity) {
-        this._bus.update.push(entity);
-    };
-
-    Repository.prototype.updateOnce = function updateOnce(entity) {
-        return _updateSink.call(this, Bacon.once(entity));
-    }
-
-    Repository.prototype.find = function find(params) {
-        this._bus.find.push(params);
-    };
-
-    Repository.prototype.findOnce = function findOnce(params) {
-        return _findSink.call(this, Bacon.once(params));
-    }
-
-    Repository.prototype.findAll = function findAll(params) {
-        this._bus.findAll.push(params);
-    };
-
-    Repository.prototype.findAllOnce = function findAllOnce(params) {
-        return _findAllSink.call(this, Bacon.once(params));
-    }
-
-    Repository.prototype.remove = function remove(params) {
-        this._bus.remove.push(params);
-    };
-
-    Repository.prototype.removeOnce = function removeOnce(params) {
-        return _removeSink.call(this, Bacon.once(params));
-    }
-
-    function _addSink(upstream) {
+    Repository.defineInterface(Repository, 'add', function addSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
             upstream.map(this.interface.add.exchanger),
             this.getPath('add')
         );
-    }
+    });
 
-    function _bulkAddSink(upstream) {
+    Repository.defineInterface(Repository, 'bulkAdd', function bulkAddSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
             upstream.map(this.interface.bulkAdd.exchanger),
             this.getPath('bulkAdd')
         );
-    }
+    });
 
-    function _updateSink(upstream) {
+    Repository.defineInterface(Repository, 'update', function updateSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
             upstream.map(this.interface.update.exchanger),
             this.getPath('update')
         );
-    }
+    });
 
-    function _findSink(upstream) {
+    Repository.defineInterface(Repository, 'find', function findSinkFactory(upstream) {
         return this.storage.makeGetItemStream(
             upstream,
             this.getPath('find')
         ).map(this.interface.find.exchanger);
-    }
+    });
 
-    function _findAllSink(upstream) {
+    Repository.defineInterface(Repository, 'findAll', function findAllSinkFactory(upstream) {
         return this.storage.makeGetItemStream(
             upstream,
             this.getPath('findAll')
         ).map(this.interface.findAll.exchanger);
-    }
+    });
 
-    function _removeSink(upstream) {
+    Repository.defineInterface(Repository, 'remove', function removeSinkFactory(upstream) {
         return this.storage.makeRemoveItemStream(
             upstream,
             this.getPath('remove')
         );
-    }
+    });
 
     function _id(arg) {
         return arg;
