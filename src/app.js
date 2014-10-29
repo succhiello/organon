@@ -188,14 +188,10 @@ namespace('organon', function(ns) {
 
     function _addEventRegisters(obj, eventNames) {
         _.each(eventNames, function(event) {
-            obj['on' + _capitalize(event)] = function(value, f) {
+            obj['on' + organon.util.capitalize(event)] = function(value, f) {
                 return obj.on({event: event, value: value}, f);
             }
         }, obj);
-    }
-
-    function _capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     function _trigger(bus, eventName, value, params) {

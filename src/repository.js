@@ -3,22 +3,31 @@ namespace('organon.repository', function(ns) {
     'use strict';
 
     var Repository = ns.Repository = function Repository(storage, properties) {
-        _.assign(this, properties || {});
-        this.storage = storage;
 
-        this.interface = this.interface || {};
-        this.interface.add = _.defaults(this.interface.add || {}, {exchanger: _id});
-        this.interface.bulkAdd = _.defaults(this.interface.bulkAdd || {}, {exchanger: _id});
-        this.interface.update = _.defaults(this.interface.update || {}, {exchanger: _id});
-        this.interface.find = _.defaults(this.interface.find || {}, {exchanger: _id});
-        this.interface.findAll = _.defaults(this.interface.findAll || {}, {exchanger: _id});
-        this.interface.remove = this.interface.remove || {};
+        var defaultInterfaceDef = {exchanger: _id};
+
+        properties = _.defaults(properties || {}, {
+            interfaceDefs: this.interfaceDefs || {}
+        });
+
+        this.storage = storage;
+        this._interfaceDefs = _.mapValues(properties.interfaceDefs, function(v) {
+            return _.defaults(v, defaultInterfaceDef);
+        });
+        _.defaults(this._interfaceDefs, {
+            add: defaultInterfaceDef,
+            bulkAdd: defaultInterfaceDef,
+            update: defaultInterfaceDef,
+            find: defaultInterfaceDef,
+            findAll: defaultInterfaceDef,
+            remove: {}
+        });
 
         this._bus = {};
         this.sink = {};
         this.error = {};
         this.awaiting = {};
-        _(this.interface).keys().forEach(function(name) {
+        _(this._interfaceDefs).keys().forEach(function(name) {
             this._bus[name] = new Bacon.Bus();
             this.sink[name] = this[name + 'SinkFactory'](this._bus[name]);
             this.error[name] = this.sink[name].errors();
@@ -40,26 +49,26 @@ namespace('organon.repository', function(ns) {
     };
 
     Repository.prototype.getPath = function getPath(func) {
-        return this.interface[func].path || this.path;
+        return this._interfaceDefs[func].path || this.path;
     };
 
     Repository.defineInterface(Repository, 'add', function addSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
-            upstream.map(this.interface.add.exchanger),
+            upstream.map(this._interfaceDefs.add.exchanger),
             this.getPath('add')
         );
     });
 
     Repository.defineInterface(Repository, 'bulkAdd', function bulkAddSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
-            upstream.map(this.interface.bulkAdd.exchanger),
+            upstream.map(this._interfaceDefs.bulkAdd.exchanger),
             this.getPath('bulkAdd')
         );
     });
 
     Repository.defineInterface(Repository, 'update', function updateSinkFactory(upstream) {
         return this.storage.makeSetItemStream(
-            upstream.map(this.interface.update.exchanger),
+            upstream.map(this._interfaceDefs.update.exchanger),
             this.getPath('update')
         );
     });
@@ -68,14 +77,14 @@ namespace('organon.repository', function(ns) {
         return this.storage.makeGetItemStream(
             upstream,
             this.getPath('find')
-        ).map(this.interface.find.exchanger);
+        ).map(this._interfaceDefs.find.exchanger);
     });
 
     Repository.defineInterface(Repository, 'findAll', function findAllSinkFactory(upstream) {
         return this.storage.makeGetItemStream(
             upstream,
             this.getPath('findAll')
-        ).map(this.interface.findAll.exchanger);
+        ).map(this._interfaceDefs.findAll.exchanger);
     });
 
     Repository.defineInterface(Repository, 'remove', function removeSinkFactory(upstream) {
