@@ -1,0 +1,24 @@
+{
+  "name": "organon",
+  "version": "0.4.0",
+  "description": "MVW application framework implemented with Bacon.js",
+  "dependencies": {},
+  "devDependencies": {
+    "karma": "^0.12.24",
+    "karma-jasmine": "^0.2.3",
+    "karma-phantomjs-launcher": "^0.1.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xica/organon.git"
+  },
+  "author": "XICA developer team <https://github.com/xica>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xica/organon/issues"
+  },
+  "homepage": "https://github.com/xica/organon"
+}
