@@ -44,7 +44,7 @@ namespace('organon.repository', function(ns) {
     };
 
     Repository.prototype.once = function once(name, arg) {
-        return this._interfaceDefs[name].sinkFactory.call(this, name, Bacon.once(arg));
+        return (this._interfaceDefs[name].sinkFactory || _genericSinkFactory).call(this, name, Bacon.once(arg));
     };
 
     Repository.defineInterface = function defineInterface(repository_class, name) {

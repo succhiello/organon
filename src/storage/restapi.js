@@ -14,7 +14,8 @@ namespace('organon.storage', function(ns) {
         return {
             type: type,
             url: pathPrefix + params.path,
-            data: params.data
+            data: type === 'get' ? params.data : JSON.stringify(params.data),
+            contentType: type === 'get' ? 'application/x-www-form-urlencoded' : 'application/json'
         };
     }
 
@@ -23,10 +24,7 @@ namespace('organon.storage', function(ns) {
     };
 
     RESTApiStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
-        return upstream.map(function(params) {
-            params.data = $.param(params.data || {});
-            return params;
-        }).map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
+        return upstream.map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
     };
 
     RESTApiStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {

@@ -20,7 +20,7 @@
   "dependencies": {
     "lodash": "~2.4.1",
     "nsjs": "https://github.com/xica/nsjs.git",
-    "bacon": "~0.7.22",
+    "bacon": "0.7.27",
     "bacon.jquery": "~0.4.9",
     "bacon.model": "~0.1.11",
     "bacon.matchers": "https://github.com/baconjs/bacon.matchers.git#master",
