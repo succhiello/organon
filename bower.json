@@ -25,6 +25,7 @@
     "bacon.model": "~0.1.11",
     "bacon.matchers": "https://github.com/baconjs/bacon.matchers.git#master",
     "html5-history-api": "~4.1.0",
-    "handlebars": "~2.0.0"
+    "handlebars": "~2.0.0",
+    "jquery": "1.10.2"
   }
 }

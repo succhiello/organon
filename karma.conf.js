@@ -10,18 +10,19 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'sinon'],
 
 
     // list of files / patterns to load in the browser
     files: [
-        'bower_components/lodash/dist/lodash.js',
+        'bower_components/jquery/jquery.min.js',
+        'bower_components/lodash/dist/lodash.min.js',
         'bower_components/nsjs/ns.js',
-        "bower_components/bacon/dist/Bacon.js",
-        "bower_components/bacon.model/dist/bacon.model.js",
-        "bower_components/bacon.jquery/dist/bacon.jquery.js",
+        "bower_components/bacon/dist/Bacon.min.js",
+        "bower_components/bacon.model/dist/bacon.model.min.js",
+        "bower_components/bacon.jquery/dist/bacon.jquery.min.js",
         "bower_components/bacon.matchers/bacon.matchers.js",
-        "bower_components/handlebars/handlebars.runtime.js",
+        "bower_components/handlebars/handlebars.runtime.min.js",
         'src/**/*.js',
         'test/**/*.js'
     ],

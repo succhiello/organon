@@ -6,7 +6,9 @@
   "devDependencies": {
     "karma": "^0.12.24",
     "karma-jasmine": "^0.2.3",
-    "karma-phantomjs-launcher": "^0.1.4"
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-sinon": "^1.0.3",
+    "sinon": "^1.11.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
