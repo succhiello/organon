@@ -1,7 +1,9 @@
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 200;
+
 describe('organon.repository.Repository', function() {
 
-    var data = [{name: 'Alice', age: 12},
-                {name: 'Bob', age: 24}],
+    var data = [{id: 0, name: 'Alice', age: 12},
+                {id: 1, name: 'Bob', age: 24}],
         TestRepository = organon.define(organon.repository.Repository, {
             interfaceDefs: {
                 add: {
@@ -10,10 +12,16 @@ describe('organon.repository.Repository', function() {
                 find: {
                     path: '/test/find'
                 },
+                getNumData: {
+                    type: 'get',
+                    path: '/test/numData'
+                },
             }
         }),
         repository,
         server;
+
+    organon.repository.Repository.defineInterface(TestRepository, 'getNumData');
 
     beforeEach(function() {
 
@@ -26,6 +34,25 @@ describe('organon.repository.Repository', function() {
                 JSON.stringify(data[id])
             );
         });
+
+        server.respondWith('POST', '/test/add', function(xhr) {
+            var added = JSON.parse(xhr.requestBody);
+            added.id = data.length;
+            data.push(added);
+            xhr.respond(
+                200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify(added)
+            );
+        });
+
+        server.respondWith('GET', '/test/numData', [
+            200,
+            {'Content-Type': 'application/json'},
+            JSON.stringify({numData: data.length})
+        ]);
+
+        server.autoRespond = true;
 
         repository = new TestRepository(new organon.storage.RESTApiStorage());
     });
@@ -42,7 +69,29 @@ describe('organon.repository.Repository', function() {
         });
 
         repository.find({id: 0});
-        expect(server.requests.length).toBe(1);
-        server.respond();
+    });
+
+    it('should add instance', function(done) {
+
+        repository.sink.add.onValue(function(result) {
+            expect(result.name).toBe('Charlie');
+            expect(result.age).toBe(36);
+            done();
+        });
+
+        repository.add({name: 'Charlie', age: 36});
+    });
+
+    it('should support custome interface', function(done) {
+
+        Bacon.zipWith([repository.sink.add, repository.sink.getNumData], function(added, numData) {
+            expect(added.id).toBe(numData.numData);
+        }).assign(done);
+
+        repository.sink.add.onValue(function(result) {
+            repository.getNumData();
+        });
+
+        repository.add({name: 'Doe', age: 48});
     });
 });
