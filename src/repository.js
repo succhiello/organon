@@ -35,7 +35,7 @@ namespace('organon.repository', function(ns) {
             this.bus[name] = new Bacon.Bus();
             this.sink[name] = (def.sinkFactory || _genericSinkFactory).call(this, name, this.bus[name]);
             this.error[name] = this.sink[name].errors();
-            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]).skipDuplicates();
+            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]);
         }, this);
     };
 

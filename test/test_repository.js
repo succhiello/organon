@@ -1,4 +1,4 @@
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 200;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
 
 describe('organon.repository.Repository', function() {
 
