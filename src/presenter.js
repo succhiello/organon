@@ -4,6 +4,8 @@ namespace('organon.presenter', function(ns) {
 
     var Presenter = ns.Presenter = function Presenter(app, properties) {
 
+        var self = this;
+
         properties = _.defaults(properties || {}, {
             initialViewModel: this.initialViewModel || {},
             busDefs: this.busDefs || {},
@@ -15,9 +17,9 @@ namespace('organon.presenter', function(ns) {
         this.viewModel = Bacon.update.apply(
             null,
             [properties.initialViewModel].concat(_(properties.busDefs).map(function(f, name) {
-                this.bus[name] = new Bacon.Bus();
-                return [[this.bus[name]], function(prev, value) { return _.clone(f.call(this, prev, value), true); }];
-            }, this).flatten(true).value())
+                self.bus[name] = new Bacon.Bus();
+                return [[self.bus[name]], function(prev, value) { return _.clone(f.call(self, prev, value), true); }];
+            }).flatten(true).value())
         );
 
         if (properties.initialize) {
