@@ -18,7 +18,7 @@ namespace('organon.presenter', function(ns) {
             null,
             [properties.initialViewModel].concat(_(properties.busDefs).map(function(f, name) {
                 self.bus[name] = new Bacon.Bus();
-                return [[self.bus[name]], function(prev, value) { return _.clone(f.call(self, prev, value), true); }];
+                return [[self.bus[name]], function(prev, value) { return f.call(self, _.clone(prev, true), value); }];
             }).flatten(true).value())
         );
 
