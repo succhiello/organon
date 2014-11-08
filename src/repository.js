@@ -84,14 +84,15 @@ namespace('organon.repository', function(ns) {
             keys = [];
 
         if (!_.isString(path)) {
-            path = upstream.map(path);
+            pathStream = upstream.map(path);
         } else {
             organon.util.pathToRegexp(path, keys);
+            keys = _.map(keys, 'name');
             if (keys.length > 0) {
                 dataStream = upstream.map(function(params) { return _.omit(params, keys); });
                 pathStream = upstream.map(function(params) {
                     return _.reduce(keys, function(result, key) {
-                        return result.replace(':' + key.name, params[key.name]);
+                        return result.replace(':' + key, params[key]);
                     }, path);
                 });
             }
