@@ -35,7 +35,7 @@ namespace('organon.repository', function(ns) {
             this.bus[name] = new Bacon.Bus();
             this.sink[name] = (def.sinkFactory || _genericSinkFactory).call(this, name, this.bus[name]);
             this.error[name] = this.sink[name].errors();
-            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]).skipDuplicates();
+            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]);
         }, this);
     };
 
@@ -44,7 +44,7 @@ namespace('organon.repository', function(ns) {
     };
 
     Repository.prototype.once = function once(name, arg) {
-        return this._interfaceDefs[name].sinkFactory.call(this, name, Bacon.once(arg));
+        return (this._interfaceDefs[name].sinkFactory || _genericSinkFactory).call(this, name, Bacon.once(arg));
     };
 
     Repository.defineInterface = function defineInterface(repository_class, name) {
@@ -63,10 +63,7 @@ namespace('organon.repository', function(ns) {
             upstream = upstream.map(def['in']);
         }
         sink = this.storage['make' + organon.util.capitalize(def['type']) + 'ItemStream'](
-            Bacon.combineTemplate({
-                data: upstream,
-                path: upstream.map(def['path'])
-            })
+            _makeStorageParams(upstream, def['path'])
         );
         if (def['out']) {
             sink = sink.map(def['out']);
@@ -77,6 +74,33 @@ namespace('organon.repository', function(ns) {
     function _getInterfaceDef(func) {
         return _.defaults(this._interfaceDefs[func] || {}, {
             path: this.path,
+        });
+    };
+
+    function _makeStorageParams(upstream, path) {
+
+        var dataStream = upstream,
+            pathStream = path,
+            keys = [];
+
+        if (!_.isString(path)) {
+            pathStream = upstream.map(path);
+        } else {
+            organon.util.pathToRegexp(path, keys);
+            keys = _.map(keys, 'name');
+            if (keys.length > 0) {
+                dataStream = upstream.map(function(params) { return _.omit(params, keys); });
+                pathStream = upstream.map(function(params) {
+                    return _.reduce(keys, function(result, key) {
+                        return result.replace(':' + key, params[key]);
+                    }, path);
+                });
+            }
+        }
+
+        return Bacon.combineTemplate({
+            data: dataStream,
+            path: pathStream
         });
     };
 });
