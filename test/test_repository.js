@@ -16,12 +16,17 @@ describe('organon.repository.Repository', function() {
                     type: 'get',
                     path: '/test/numData'
                 },
+                get: {
+                    type: 'get',
+                    path: '/test/get/:id'
+                },
             }
         }),
         repository,
         server;
 
     organon.repository.Repository.defineInterface(TestRepository, 'getNumData');
+    organon.repository.Repository.defineInterface(TestRepository, 'get');
 
     beforeEach(function() {
 
@@ -51,6 +56,14 @@ describe('organon.repository.Repository', function() {
             {'Content-Type': 'application/json'},
             JSON.stringify({numData: data.length})
         ]);
+
+        server.respondWith('GET', /\/test\/get\/(\d+)/, function(xhr, id) {
+            xhr.respond(
+                200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify(data[id])
+            );
+        });
 
         server.autoRespond = true;
 
@@ -93,5 +106,15 @@ describe('organon.repository.Repository', function() {
         });
 
         repository.add({name: 'Doe', age: 48});
+    });
+
+    it('should interpolate path includes colon with params, and eliminate used keys and values', function(done) {
+
+        repository.sink.get.onValue(function(result) {
+            expect(result).toEqual(data[0]);
+            done();
+        });
+
+        repository.get({id: 0});
     });
 });

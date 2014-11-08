@@ -63,10 +63,7 @@ namespace('organon.repository', function(ns) {
             upstream = upstream.map(def['in']);
         }
         sink = this.storage['make' + organon.util.capitalize(def['type']) + 'ItemStream'](
-            Bacon.combineTemplate({
-                data: upstream,
-                path: upstream.map(def['path'])
-            })
+            _makeStorageParams(upstream, def['path'])
         );
         if (def['out']) {
             sink = sink.map(def['out']);
@@ -77,6 +74,32 @@ namespace('organon.repository', function(ns) {
     function _getInterfaceDef(func) {
         return _.defaults(this._interfaceDefs[func] || {}, {
             path: this.path,
+        });
+    };
+
+    function _makeStorageParams(upstream, path) {
+
+        var dataStream = upstream,
+            pathStream = path,
+            keys = [];
+
+        if (!_.isString(path)) {
+            path = upstream.map(path);
+        } else {
+            organon.util.pathToRegexp(path, keys);
+            if (keys.length > 0) {
+                dataStream = upstream.map(function(params) { return _.omit(params, keys); });
+                pathStream = upstream.map(function(params) {
+                    return _.reduce(keys, function(result, key) {
+                        return result.replace(':' + key.name, params[key.name]);
+                    }, path);
+                });
+            }
+        }
+
+        return Bacon.combineTemplate({
+            data: dataStream,
+            path: pathStream
         });
     };
 });
