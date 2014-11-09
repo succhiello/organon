@@ -20,10 +20,10 @@
   "dependencies": {
     "lodash": "~2.4.1",
     "nsjs": "https://github.com/xica/nsjs.git",
-    "bacon": "0.7.27",
+    "bacon": "~0.7.30",
     "bacon.jquery": "~0.4.9",
-    "bacon.model": "~0.1.11",
-    "bacon.matchers": "https://github.com/baconjs/bacon.matchers.git#master",
+    "bacon.model": "~0.1.12",
+    "bacon.matchers": "~0.4.0",
     "html5-history-api": "~4.1.0",
     "handlebars": "~2.0.0",
     "jquery": "1.10.2"
