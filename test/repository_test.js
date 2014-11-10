@@ -2,9 +2,13 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
 
 describe('organon.repository.Repository', function() {
 
+    var define = require('../src/util').define,
+        Repository = require('../src/repository'),
+        RESTApiStorage = require('../src/storage/restapi');
+
     var data = [{id: 0, name: 'Alice', age: 12},
                 {id: 1, name: 'Bob', age: 24}],
-        TestRepository = organon.define(organon.repository.Repository, {
+        TestRepository = define(Repository, {
             interfaceDefs: {
                 add: {
                     path: '/test/add'
@@ -25,8 +29,8 @@ describe('organon.repository.Repository', function() {
         repository,
         server;
 
-    organon.repository.Repository.defineInterface(TestRepository, 'getNumData');
-    organon.repository.Repository.defineInterface(TestRepository, 'get');
+    Repository.defineInterface(TestRepository, 'getNumData');
+    Repository.defineInterface(TestRepository, 'get');
 
     beforeEach(function() {
 
@@ -67,7 +71,7 @@ describe('organon.repository.Repository', function() {
 
         server.autoRespond = true;
 
-        repository = new TestRepository(new organon.storage.RESTApiStorage());
+        repository = new TestRepository(new RESTApiStorage());
     });
 
     afterEach(function() {

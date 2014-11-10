@@ -1,8 +1,7 @@
-namespace('organon.repository', function(ns) {
+'use strict';
 
-    'use strict';
-
-    var Repository = ns.Repository = function Repository(storage, properties) {
+var util = require('./util'),
+    Repository = function Repository(storage, properties) {
 
         var defaultInterfaceDef = {
             path: null,
@@ -39,68 +38,69 @@ namespace('organon.repository', function(ns) {
         }, this);
     };
 
-    Repository.prototype.push = function push(name, arg) {
-        this.bus[name].push(arg);
-    };
+Repository.prototype.push = function push(name, arg) {
+    this.bus[name].push(arg);
+};
 
-    Repository.prototype.once = function once(name, arg) {
-        return (this._interfaceDefs[name].sinkFactory || _genericSinkFactory).call(this, name, Bacon.once(arg));
-    };
+Repository.prototype.once = function once(name, arg) {
+    return (this._interfaceDefs[name].sinkFactory || _genericSinkFactory).call(this, name, Bacon.once(arg));
+};
 
-    Repository.defineInterface = function defineInterface(repository_class, name) {
-        repository_class.prototype[name] = function(arg) { return this.push(name, arg); }
-        repository_class.prototype[name + 'Once'] = function(arg) { return this.once(name, arg); }
-    };
+Repository.defineInterface = function defineInterface(repository_class, name) {
+    repository_class.prototype[name] = function(arg) { return this.push(name, arg); }
+    repository_class.prototype[name + 'Once'] = function(arg) { return this.once(name, arg); }
+};
 
-    _.forEach(['add', 'bulkAdd', 'update', 'find', 'findAll', 'remove'], function(name) {
-        Repository.defineInterface(Repository, name);
+_.forEach(['add', 'bulkAdd', 'update', 'find', 'findAll', 'remove'], function(name) {
+    Repository.defineInterface(Repository, name);
+});
+
+function _genericSinkFactory(name, upstream) {
+    var def = _getInterfaceDef.call(this, name),
+        sink = null;
+    if (def['in']) {
+        upstream = upstream.map(def['in']);
+    }
+    sink = this.storage['make' + util.capitalize(def['type']) + 'ItemStream'](
+        _makeStorageParams(upstream, def['path'])
+    );
+    if (def['out']) {
+        sink = sink.map(def['out']);
+    }
+    return sink;
+}
+
+function _getInterfaceDef(func) {
+    return _.defaults(this._interfaceDefs[func] || {}, {
+        path: this.path,
     });
+};
 
-    function _genericSinkFactory(name, upstream) {
-        var def = _getInterfaceDef.call(this, name),
-            sink = null;
-        if (def['in']) {
-            upstream = upstream.map(def['in']);
+function _makeStorageParams(upstream, path) {
+
+    var dataStream = upstream,
+        pathStream = path,
+        keys = [];
+
+    if (!_.isString(path)) {
+        pathStream = upstream.map(path);
+    } else {
+        util.pathToRegexp(path, keys);
+        keys = _.map(keys, 'name');
+        if (keys.length > 0) {
+            dataStream = upstream.map(function(params) { return _.omit(params, keys); });
+            pathStream = upstream.map(function(params) {
+                return _.reduce(keys, function(result, key) {
+                    return result.replace(':' + key, params[key]);
+                }, path);
+            });
         }
-        sink = this.storage['make' + organon.util.capitalize(def['type']) + 'ItemStream'](
-            _makeStorageParams(upstream, def['path'])
-        );
-        if (def['out']) {
-            sink = sink.map(def['out']);
-        }
-        return sink;
     }
 
-    function _getInterfaceDef(func) {
-        return _.defaults(this._interfaceDefs[func] || {}, {
-            path: this.path,
-        });
-    };
+    return Bacon.combineTemplate({
+        data: dataStream,
+        path: pathStream
+    });
+};
 
-    function _makeStorageParams(upstream, path) {
-
-        var dataStream = upstream,
-            pathStream = path,
-            keys = [];
-
-        if (!_.isString(path)) {
-            pathStream = upstream.map(path);
-        } else {
-            organon.util.pathToRegexp(path, keys);
-            keys = _.map(keys, 'name');
-            if (keys.length > 0) {
-                dataStream = upstream.map(function(params) { return _.omit(params, keys); });
-                pathStream = upstream.map(function(params) {
-                    return _.reduce(keys, function(result, key) {
-                        return result.replace(':' + key, params[key]);
-                    }, path);
-                });
-            }
-        }
-
-        return Bacon.combineTemplate({
-            data: dataStream,
-            path: pathStream
-        });
-    };
-});
+module.exports = Repository;
