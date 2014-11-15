@@ -12,13 +12,13 @@ module.exports = {
     externals: {
         'lodash': '_',
         'jquery': 'jQuery',
-        'bacon': 'Bacon'
+        'baconjs': 'Bacon'
     },
     plugins: [
         new webpack.ProvidePlugin({
             _: 'lodash',
             $: 'jquery',
-            Bacon: 'bacon'
+            Bacon: 'baconjs'
         })
     ]
 };
