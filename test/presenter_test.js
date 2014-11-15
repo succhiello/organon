@@ -2,7 +2,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
 
 describe('organon.presenter.Presenter', function() {
 
-    var presenter, server;
+    var presenter, server,
+        organon = require('../src/main');
 
     organon.run({});
     var initialViewModel = {

@@ -1,12 +1,10 @@
-namespace('organon.view', function(ns) {
+'use strict';
 
-    'use strict';
-
-    var View = ns.View = function View(app, properties) {
+var View = function View(app, properties) {
 
         properties = _.defaults(properties || {}, {
             childDefs: this.childDefs || {},
-            templateNamespace: this.templateNamespace || '',
+            template: this.template || '',
             name: this.name || '',
             el: this.el || '',
             presenter: this.presenter || null,
@@ -21,12 +19,12 @@ namespace('organon.view', function(ns) {
 
         this.presenter = properties.presenter;
 
-        this._templateNamespace = namespace(properties.templateNamespace);
+        this._template = properties.template;
         this.name = properties.name;
         this.el = properties.el;
         this.$el = $(properties.el);
 
-        this.onRender().assign(this, 'renderTemplate', this.name);
+        this.onRender().assign(this, 'renderTemplate', this._template);
 
         _.forIn(this.children, function(v) {
             this.onPostRender().map(v.map).assign(v.view, 'render');
@@ -37,40 +35,41 @@ namespace('organon.view', function(ns) {
         }
     };
 
-    View.prototype.onPreRender = function onPreRender(f) {
-        return this.app.onPreRenderView(this.name, f);
+View.prototype.onPreRender = function onPreRender(f) {
+    return this.app.onPreRenderView(this.name, f);
+}
+
+View.prototype.onRender = function onRender(f) {
+    return this.app.onRenderView(this.name, f);
+}
+
+View.prototype.onPostRender = function onPostRender(f) {
+    return this.app.onPostRenderView(this.name, f);
+}
+
+View.prototype.renderHTML = function renderHTML(html) {
+    $(this.el).html(html);
+};
+
+View.prototype.renderTemplate = function renderTemplate(template, data) {
+    this.renderHTML(template(data));
+};
+
+View.prototype.render = function render(data) {
+    this.app.trigger('preRenderView', this.name, data);
+    this.app.trigger('renderView', this.name, data);
+    this.app.trigger('postRenderView', this.name, data);
+};
+
+View.prototype.showElement = function showElement($el, isShown) {
+    if (_.isString($el)) {
+        $el = $(this.el).find($el);
     }
-
-    View.prototype.onRender = function onRender(f) {
-        return this.app.onRenderView(this.name, f);
+    if (isShown) {
+        $el.show();
+    } else {
+        $el.hide();
     }
+};
 
-    View.prototype.onPostRender = function onPostRender(f) {
-        return this.app.onPostRenderView(this.name, f);
-    }
-
-    View.prototype.renderHTML = function renderHTML(html) {
-        $(this.el).html(html);
-    };
-
-    View.prototype.renderTemplate = function renderTemplate(name, data) {
-        this.renderHTML(this._templateNamespace[name](data));
-    };
-
-    View.prototype.render = function render(data) {
-        this.app.trigger('preRenderView', this.name, data);
-        this.app.trigger('renderView', this.name, data);
-        this.app.trigger('postRenderView', this.name, data);
-    };
-
-    View.prototype.showElement = function showElement($el, isShown) {
-        if (_.isString($el)) {
-            $el = $(this.el).find($el);
-        }
-        if (isShown) {
-            $el.show();
-        } else {
-            $el.hide();
-        }
-    };
-});
+module.exports = View;

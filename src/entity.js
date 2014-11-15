@@ -1,10 +1,5 @@
-namespace('organon.entity', function(ns) {
+'use strict';
 
-    'use strict';
-
-    ns.Entity = function Entity(initialValue) {
-
-        _.assign(this, initialValue);
-    };
-
-});
+module.exports = function Entity(initialValue) {
+    _.assign(this, initialValue);
+};
