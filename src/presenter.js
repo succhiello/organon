@@ -1,8 +1,6 @@
-namespace('organon.presenter', function(ns) {
+'use strict';
 
-    'use strict';
-
-    var Presenter = ns.Presenter = function Presenter(app, properties) {
+var Presenter = function Presenter(app, properties) {
 
         var self = this;
 
@@ -27,7 +25,8 @@ namespace('organon.presenter', function(ns) {
         }
     };
 
-    Presenter.prototype.viewModelChanges = function viewModelChanges(mapping) {
-        return (mapping ? this.viewModel.map(mapping) : this.viewModel).skipDuplicates(_.isEqual).changes();
-    };
-});
+Presenter.prototype.viewModelChanges = function viewModelChanges(mapping) {
+    return (mapping ? this.viewModel.map(mapping) : this.viewModel).skipDuplicates(_.isEqual).changes();
+};
+
+module.exports = Presenter;

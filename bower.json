@@ -1,6 +1,6 @@
 {
   "name": "organon",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "homepage": "https://github.com/xica/organon",
   "authors": [
     "XICA developer team <info@xica.net>"
@@ -10,6 +10,7 @@
     "bacon.js"
   ],
   "license": "MIT",
+  "main": "dist/organon.js",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -19,13 +20,12 @@
   ],
   "dependencies": {
     "lodash": "~2.4.1",
-    "nsjs": "https://github.com/xica/nsjs.git",
     "bacon": "~0.7.30",
     "bacon.jquery": "~0.4.9",
     "bacon.model": "~0.1.12",
     "bacon.matchers": "~0.4.0",
     "html5-history-api": "~4.1.0",
-    "handlebars": "~2.0.0",
-    "jquery": "1.10.2"
+    "jquery": "1.10.2",
+    "bacon.localForage": "https://github.com/xica/bacon.localForage.git#0.1.2"
   }
 }

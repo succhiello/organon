@@ -17,14 +17,13 @@ module.exports = function(config) {
     files: [
         'bower_components/jquery/jquery.min.js',
         'bower_components/lodash/dist/lodash.min.js',
-        'bower_components/nsjs/ns.js',
         "bower_components/bacon/dist/Bacon.min.js",
         "bower_components/bacon.model/dist/bacon.model.min.js",
         "bower_components/bacon.jquery/dist/bacon.jquery.min.js",
         "bower_components/bacon.matchers/bacon.matchers.js",
-        "bower_components/handlebars/handlebars.runtime.min.js",
-        'src/**/*.js',
-        'test/**/*.js'
+        "bower_components/localforage/dist/localforage.min.js",
+        "bower_components/bacon.localForage/dist/bacon.localforage.js",
+        'test/index.js'
     ],
 
 
@@ -36,8 +35,13 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+        'test/index.js': ['webpack', 'sourcemap']
     },
 
+    webpack: {
+        cache: true,
+        devtool: 'inline-source-map'
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
