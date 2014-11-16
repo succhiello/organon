@@ -21,6 +21,8 @@ module.exports = function(config) {
         "bower_components/bacon.model/dist/bacon.model.min.js",
         "bower_components/bacon.jquery/dist/bacon.jquery.min.js",
         "bower_components/bacon.matchers/bacon.matchers.js",
+        "bower_components/localforage/dist/localforage.min.js",
+        "bower_components/bacon.localForage/dist/bacon.localforage.js",
         'test/index.js'
     ],
 

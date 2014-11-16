@@ -30,7 +30,8 @@ module.exports.presenter = { Presenter: require('./presenter') };
 module.exports.repository = { Repository: require('./repository') };
 module.exports.storage = {
     Storage: require('./storage'),
-    RESTApiStorage: require('./storage/restapi')
+    RESTApiStorage: require('./storage/restapi'),
+    LocalForageStorage: require('./storage/localforage')
 };
 module.exports.view = {
     View: require('./view'),
