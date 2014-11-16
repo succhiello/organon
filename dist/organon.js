@@ -75,6 +75,7 @@ var organon =
 	    return _on(_appEvent, 'ready', f);
 	};
 	
+	module.exports.util = util;
 	module.exports.entity = { Entity: __webpack_require__(/*! ./entity */ 5) };
 	module.exports.presenter = { Presenter: __webpack_require__(/*! ./presenter */ 6) };
 	module.exports.repository = { Repository: __webpack_require__(/*! ./repository */ 7) };

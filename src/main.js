@@ -25,6 +25,7 @@ onReady = module.exports.onReady = function onReady(f) {
     return _on(_appEvent, 'ready', f);
 };
 
+module.exports.util = util;
 module.exports.entity = { Entity: require('./entity') };
 module.exports.presenter = { Presenter: require('./presenter') };
 module.exports.repository = { Repository: require('./repository') };
