@@ -1,5 +1,11 @@
 'use strict';
 
+require('bacon.model');
+require('bacon.jquery');
+require('bacon.matchers');
+require('bacon.localForage');
+require('html5-history-api');
+
 var util = require('./util'),
     _app = null,
     _appEvent = new Bacon.Bus(),

@@ -1,5 +1,14 @@
-var organon =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("bacon.model"), require("bacon.jquery"), require("bacon.matchers"), require("bacon.localForage"), require("html5-history-api"), require("bacon"), require("lodash"), require("jquery"));
+	else if(typeof define === 'function' && define.amd)
+		define(["bacon.model", "bacon.jquery", "bacon.matchers", "bacon.localForage", "html5-history-api", "bacon", "lodash", "jquery"], factory);
+	else if(typeof exports === 'object')
+		exports["organon"] = factory(require("bacon.model"), require("bacon.jquery"), require("bacon.matchers"), require("bacon.localForage"), require("html5-history-api"), require("bacon"), require("lodash"), require("jquery"));
+	else
+		root["organon"] = factory(root["bacon.model"], root["bacon.jquery"], root["bacon.matchers"], root["bacon.localForage"], root["html5-history-api"], root["bacon"], root["lodash"], root["jquery"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_7__, __WEBPACK_EXTERNAL_MODULE_8__) {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -47,7 +56,13 @@ var organon =
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
-	var util = __webpack_require__(4),
+	__webpack_require__(1);
+	__webpack_require__(2);
+	__webpack_require__(3);
+	__webpack_require__(4);
+	__webpack_require__(5);
+
+	var util = __webpack_require__(9),
 	    _app = null,
 	    _appEvent = new Bacon.Bus(),
 	    onReady = null;
@@ -73,17 +88,17 @@ var organon =
 	};
 
 	module.exports.util = util;
-	module.exports.entity = { Entity: __webpack_require__(5) };
-	module.exports.presenter = { Presenter: __webpack_require__(6) };
-	module.exports.repository = { Repository: __webpack_require__(7) };
+	module.exports.entity = { Entity: __webpack_require__(10) };
+	module.exports.presenter = { Presenter: __webpack_require__(11) };
+	module.exports.repository = { Repository: __webpack_require__(12) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(8),
-	    RESTApiStorage: __webpack_require__(9),
-	    LocalForageStorage: __webpack_require__(10)
+	    Storage: __webpack_require__(13),
+	    RESTApiStorage: __webpack_require__(14),
+	    LocalForageStorage: __webpack_require__(15)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(11),
-	    AppView: __webpack_require__(12)
+	    View: __webpack_require__(16),
+	    AppView: __webpack_require__(17)
 	};
 
 	function _App(config) {
@@ -264,28 +279,58 @@ var organon =
 	    });
 	});
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(2), __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(7), __webpack_require__(8)))
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = Bacon;
+	module.exports = require("bacon.model");
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = _;
+	module.exports = require("bacon.jquery");
 
 /***/ },
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = jQuery;
+	module.exports = require("bacon.matchers");
 
 /***/ },
 /* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = require("bacon.localForage");
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_7__;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -337,10 +382,10 @@ var organon =
 	    return derived;
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ },
-/* 5 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -349,10 +394,10 @@ var organon =
 	    _.assign(this, initialValue);
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ },
-/* 6 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -388,15 +433,15 @@ var organon =
 
 	module.exports = Presenter;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
 
 /***/ },
-/* 7 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	var util = __webpack_require__(4),
+	var util = __webpack_require__(9),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -501,10 +546,10 @@ var organon =
 
 	module.exports = Repository;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
 
 /***/ },
-/* 8 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -528,16 +573,16 @@ var organon =
 
 	module.exports = Storage;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
 
 /***/ },
-/* 9 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(8),
-	    inherit = __webpack_require__(4).inherit,
+	var Storage = __webpack_require__(13),
+	    inherit = __webpack_require__(9).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
 	        Storage.call(this, properties);
@@ -571,13 +616,13 @@ var organon =
 
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_provided_Bacon_dot_localforage) {'use strict';
 
-	var Storage = __webpack_require__(8),
-	    inherit = __webpack_require__(4).inherit,
+	var Storage = __webpack_require__(13),
+	    inherit = __webpack_require__(9).inherit,
 	    LocalForageStorage = inherit(Storage, function LocalForageStorage(properties) {
 
 	        Storage.call(this, properties);
@@ -599,10 +644,10 @@ var organon =
 
 	module.exports = LocalForageStorage;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
@@ -681,14 +726,14 @@ var organon =
 
 	module.exports = View;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(8)))
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var View = __webpack_require__(11),
-	    inherit = __webpack_require__(4).inherit,
+	var View = __webpack_require__(16),
+	    inherit = __webpack_require__(9).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
 	        View.call(this, app, properties);
@@ -713,11 +758,6 @@ var organon =
 	module.exports = AppView;
 
 
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = Bacon.localforage;
-
 /***/ }
 /******/ ])
+});
