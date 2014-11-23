@@ -7,20 +7,24 @@ module.exports = {
         path: path.join(__dirname, 'dist'),
         filename: 'organon.js',
         library: 'organon',
-        libraryTarget: 'var'
+        libraryTarget: 'umd'
     },
     externals: {
-        'lodash': '_',
-        'jquery': 'jQuery',
-        'baconjs': 'Bacon',
-        'bacon.localforage': 'Bacon.localforage'
+        lodash: true,
+        jquery: true,
+        bacon: true,
+        'bacon.model': 'commonjs bacon.model',
+        'bacon.jquery': 'commonjs bacon.jquery',
+        'bacon.matchers': 'commonjs bacon.matchers',
+        'bacon.localForage': 'commonjs bacon.localForage',
+        'html5-history-api': 'amd html5-history-api'
     },
     plugins: [
         new webpack.ProvidePlugin({
             _: 'lodash',
             $: 'jquery',
-            Bacon: 'baconjs',
-            'Bacon.localforage': 'bacon.localforage'
+            Bacon: 'bacon',
+            'Bacon.localforage': 'bacon.localForage'
         })
     ]
 };
