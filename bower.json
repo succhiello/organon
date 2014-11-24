@@ -25,7 +25,6 @@
     "bacon.model": "~0.1.12",
     "bacon.matchers": "~0.4.0",
     "html5-history-api": "~4.1.0",
-    "jquery": "1.10.2",
-    "bacon.localForage": "https://github.com/xica/bacon.localForage.git#0.1.2"
+    "jquery": "1.10.2"
   }
 }
