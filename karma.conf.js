@@ -1,6 +1,8 @@
 // Karma configuration
 // Generated on Thu Nov 06 2014 04:19:24 GMT+0900 (JST)
 
+var webpack = require('webpack');
+
 module.exports = function(config) {
   config.set({
 
@@ -15,12 +17,6 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'bower_components/jquery/jquery.min.js',
-        'bower_components/lodash/dist/lodash.min.js',
-        "bower_components/bacon/dist/Bacon.min.js",
-        "bower_components/bacon.model/dist/bacon.model.min.js",
-        "bower_components/bacon.jquery/dist/bacon.jquery.min.js",
-        "bower_components/bacon.matchers/bacon.matchers.js",
         'test/index.js'
     ],
 
@@ -38,7 +34,24 @@ module.exports = function(config) {
 
     webpack: {
         cache: true,
-        devtool: 'inline-source-map'
+        devtool: 'inline-source-map',
+        resolve: {
+            modulesDirectories: ['node_modules', 'bower_components'],
+            alias: {
+                baconjs: 'bacon'
+            }
+        },
+        plugins: [
+            new webpack.ResolverPlugin(
+                new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin('bower.json', ['main'])
+            ),
+            new webpack.ProvidePlugin({
+                _: 'lodash',
+                $: 'jquery',
+                Bacon: 'bacon',
+                history: 'html5-history-api'
+            })
+        ]
     },
 
     // test results reporter to use

@@ -1,5 +1,14 @@
-var organon =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
+	else if(typeof define === 'function' && define.amd)
+		define(["bacon.jquery", "bacon.matchers", "bacon", "html5-history-api", "lodash", "jquery"], factory);
+	else if(typeof exports === 'object')
+		exports["organon"] = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
+	else
+		root["organon"] = factory(root["Bacon"]["$"], root["Bacon"], root["Bacon"], root["history"], root["_"], root["jQuery"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -47,7 +56,10 @@ var organon =
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, history, _, $) {'use strict';
 
-	var util = __webpack_require__(5),
+	__webpack_require__(1);
+	__webpack_require__(2);
+
+	var util = __webpack_require__(7),
 	    _app = null,
 	    _appEvent = new Bacon.Bus(),
 	    onReady = null;
@@ -73,16 +85,16 @@ var organon =
 	};
 
 	module.exports.util = util;
-	module.exports.entity = { Entity: __webpack_require__(6) };
-	module.exports.presenter = { Presenter: __webpack_require__(7) };
-	module.exports.repository = { Repository: __webpack_require__(8) };
+	module.exports.entity = { Entity: __webpack_require__(8) };
+	module.exports.presenter = { Presenter: __webpack_require__(9) };
+	module.exports.repository = { Repository: __webpack_require__(10) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(9),
-	    RESTApiStorage: __webpack_require__(10)
+	    Storage: __webpack_require__(11),
+	    RESTApiStorage: __webpack_require__(12)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(11),
-	    AppView: __webpack_require__(12)
+	    View: __webpack_require__(13),
+	    AppView: __webpack_require__(14)
 	};
 
 	function _App(config) {
@@ -262,35 +274,47 @@ var organon =
 	        app.dispatch();
 	    });
 	});
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = Bacon;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = history;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
 
 /***/ },
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = _;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
 
 /***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = jQuery;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 
 /***/ },
 /* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -341,11 +365,11 @@ var organon =
 	    derived.prototype = _.create(base.prototype, _.assign(properties || {}, {constructor: derived}));
 	    return derived;
 	};
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -353,11 +377,11 @@ var organon =
 	module.exports = function Entity(initialValue) {
 	    _.assign(this, initialValue);
 	};
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -392,16 +416,16 @@ var organon =
 	};
 
 	module.exports = Presenter;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(1)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	var util = __webpack_require__(5),
+	var util = __webpack_require__(7),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -505,11 +529,11 @@ var organon =
 	};
 
 	module.exports = Repository;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(1)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -532,17 +556,17 @@ var organon =
 	};
 
 	module.exports = Storage;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(1)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(9),
-	    inherit = __webpack_require__(5).inherit,
+	var Storage = __webpack_require__(11),
+	    inherit = __webpack_require__(7).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
 	        Storage.call(this, properties);
@@ -576,7 +600,7 @@ var organon =
 
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
@@ -654,15 +678,15 @@ var organon =
 	};
 
 	module.exports = View;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(4)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var View = __webpack_require__(11),
-	    inherit = __webpack_require__(5).inherit,
+	var View = __webpack_require__(13),
+	    inherit = __webpack_require__(7).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
 	        View.call(this, app, properties);
@@ -689,3 +713,4 @@ var organon =
 
 /***/ }
 /******/ ])
+});

@@ -1,5 +1,8 @@
 'use strict';
 
+require('bacon.jquery');
+require('bacon.matchers');
+
 var util = require('./util'),
     _app = null,
     _appEvent = new Bacon.Bus(),
