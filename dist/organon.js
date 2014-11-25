@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("bacon.model"), require("bacon.jquery"), require("bacon.matchers"), require("bacon.localForage"), require("html5-history-api"), require("bacon"), require("lodash"), require("jquery"));
+		module.exports = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
 	else if(typeof define === 'function' && define.amd)
-		define(["bacon.model", "bacon.jquery", "bacon.matchers", "bacon.localForage", "html5-history-api", "bacon", "lodash", "jquery"], factory);
+		define(["bacon.jquery", "bacon.matchers", "bacon", "html5-history-api", "lodash", "jquery"], factory);
 	else if(typeof exports === 'object')
-		exports["organon"] = factory(require("bacon.model"), require("bacon.jquery"), require("bacon.matchers"), require("bacon.localForage"), require("html5-history-api"), require("bacon"), require("lodash"), require("jquery"));
+		exports["organon"] = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
 	else
-		root["organon"] = factory(root["bacon.model"], root["bacon.jquery"], root["bacon.matchers"], root["bacon.localForage"], root["html5-history-api"], root["bacon"], root["lodash"], root["jquery"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_7__, __WEBPACK_EXTERNAL_MODULE_8__) {
+		root["organon"] = factory(root["Bacon"]["$"], root["Bacon"], root["Bacon"], root["history"], root["_"], root["jQuery"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -54,15 +54,12 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
+	/* WEBPACK VAR INJECTION */(function(Bacon, history, _, $) {'use strict';
 
 	__webpack_require__(1);
 	__webpack_require__(2);
-	__webpack_require__(3);
-	__webpack_require__(4);
-	__webpack_require__(5);
 
-	var util = __webpack_require__(9),
+	var util = __webpack_require__(7),
 	    _app = null,
 	    _appEvent = new Bacon.Bus(),
 	    onReady = null;
@@ -88,17 +85,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports.util = util;
-	module.exports.entity = { Entity: __webpack_require__(10) };
-	module.exports.presenter = { Presenter: __webpack_require__(11) };
-	module.exports.repository = { Repository: __webpack_require__(12) };
+	module.exports.entity = { Entity: __webpack_require__(8) };
+	module.exports.presenter = { Presenter: __webpack_require__(9) };
+	module.exports.repository = { Repository: __webpack_require__(10) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(13),
-	    RESTApiStorage: __webpack_require__(14),
-	    LocalForageStorage: __webpack_require__(15)
+	    Storage: __webpack_require__(11),
+	    RESTApiStorage: __webpack_require__(12)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(16),
-	    AppView: __webpack_require__(17)
+	    View: __webpack_require__(13),
+	    AppView: __webpack_require__(14)
 	};
 
 	function _App(config) {
@@ -278,32 +274,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	        app.dispatch();
 	    });
 	});
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(7), __webpack_require__(8)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = require("bacon.model");
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = require("bacon.jquery");
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
 
 /***/ },
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = require("bacon.matchers");
+	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
 
 /***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = require("bacon.localForage");
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 
 /***/ },
 /* 5 */
@@ -319,18 +315,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_7__;
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
-
-/***/ },
-/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -381,11 +365,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    derived.prototype = _.create(base.prototype, _.assign(properties || {}, {constructor: derived}));
 	    return derived;
 	};
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 10 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -393,11 +377,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = function Entity(initialValue) {
 	    _.assign(this, initialValue);
 	};
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 11 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -432,16 +416,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Presenter;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 12 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	var util = __webpack_require__(9),
+	var util = __webpack_require__(7),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -545,11 +529,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Repository;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 13 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -572,17 +556,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Storage;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(6)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 14 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(13),
-	    inherit = __webpack_require__(9).inherit,
+	var Storage = __webpack_require__(11),
+	    inherit = __webpack_require__(7).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
 	        Storage.call(this, properties);
@@ -616,38 +600,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(__webpack_provided_Bacon_dot_localforage) {'use strict';
-
-	var Storage = __webpack_require__(13),
-	    inherit = __webpack_require__(9).inherit,
-	    LocalForageStorage = inherit(Storage, function LocalForageStorage(properties) {
-
-	        Storage.call(this, properties);
-	    });
-
-	LocalForageStorage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
-	    return upstream.flatMap(function(params) {
-	        return __webpack_provided_Bacon_dot_localforage.setItem(params.path, params.data);
-	    });
-	};
-
-	LocalForageStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
-	    return upstream.map('.path').flatMap(__webpack_provided_Bacon_dot_localforage.getItem);
-	};
-
-	LocalForageStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
-	    return upstream.map('.path').flatMap(__webpack_provided_Bacon_dot_localforage.removeItem);
-	};
-
-	module.exports = LocalForageStorage;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
-
-/***/ },
-/* 16 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
@@ -725,15 +678,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = View;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(8)))
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
-/* 17 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var View = __webpack_require__(16),
-	    inherit = __webpack_require__(9).inherit,
+	var View = __webpack_require__(13),
+	    inherit = __webpack_require__(7).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
 	        View.call(this, app, properties);

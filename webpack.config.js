@@ -9,22 +9,52 @@ module.exports = {
         library: 'organon',
         libraryTarget: 'umd'
     },
-    externals: {
-        lodash: true,
-        jquery: true,
-        bacon: true,
-        'bacon.model': 'commonjs bacon.model',
-        'bacon.jquery': 'commonjs bacon.jquery',
-        'bacon.matchers': 'commonjs bacon.matchers',
-        'bacon.localForage': 'commonjs bacon.localForage',
-        'html5-history-api': 'amd html5-history-api'
-    },
+    externals: [
+        {
+            lodash: {
+                root: '_',
+                commonjs: 'lodash',
+                commonjs2: 'lodash',
+                amd: 'lodash'
+            },
+            jquery: {
+                root: 'jQuery',
+                commonjs: 'jquery',
+                commonjs2: 'jquery',
+                amd: 'jquery'
+            },
+            bacon: {
+                root: 'Bacon',
+                commonjs: 'bacon',
+                commonjs2: 'bacon',
+                amd: 'bacon'
+            },
+            'bacon.jquery': {
+                root: ['Bacon', '$'],
+                commonjs: 'bacon.jquery',
+                commonjs2: 'bacon.jquery',
+                amd: 'bacon.jquery'
+            },
+            'bacon.matchers': {
+                root: 'Bacon',
+                commonjs: 'bacon.matchers',
+                commonjs2: 'bacon.matchers',
+                amd: 'bacon.matchers'
+            },
+            'html5-history-api': {
+                root: 'history',
+                commonjs: 'hhtml5-history-api',
+                commonjs2: 'hhtml5-history-api',
+                amd: 'html5-history-api'
+            }
+        }
+    ],
     plugins: [
         new webpack.ProvidePlugin({
             _: 'lodash',
             $: 'jquery',
             Bacon: 'bacon',
-            'Bacon.localforage': 'bacon.localForage'
+            history: 'html5-history-api'
         })
     ]
 };

@@ -1,10 +1,7 @@
 'use strict';
 
-require('bacon.model');
 require('bacon.jquery');
 require('bacon.matchers');
-require('bacon.localForage');
-require('html5-history-api');
 
 var util = require('./util'),
     _app = null,
@@ -37,8 +34,7 @@ module.exports.presenter = { Presenter: require('./presenter') };
 module.exports.repository = { Repository: require('./repository') };
 module.exports.storage = {
     Storage: require('./storage'),
-    RESTApiStorage: require('./storage/restapi'),
-    LocalForageStorage: require('./storage/localforage')
+    RESTApiStorage: require('./storage/restapi')
 };
 module.exports.view = {
     View: require('./view'),
