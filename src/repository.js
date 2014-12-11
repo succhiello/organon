@@ -17,8 +17,13 @@ var util = require('./util'),
 
         this.storage = storage;
         this._defaultPath = properties.defaultPath;
+
+        if (_.isArray(properties.interfaceDefs)) {
+            properties.interfaceDefs = _.zipObject(properties.interfaceDefs);
+        }
+
         this._interfaceDefs = _.mapValues(properties.interfaceDefs, function(v) {
-            return _.defaults(v, defaultInterfaceDef);
+            return _.defaults(_.isObject(v) ? v : {}, defaultInterfaceDef);
         });
         _.defaults(this._interfaceDefs.add, { type: 'set' });
         _.defaults(this._interfaceDefs.bulkAdd, { type: 'set' });
