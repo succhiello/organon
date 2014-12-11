@@ -274,7 +274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        app.dispatch();
 	    });
 	});
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
@@ -365,7 +365,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    derived.prototype = _.create(base.prototype, _.assign(properties || {}, {constructor: derived}));
 	    return derived;
 	};
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
@@ -377,7 +377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = function Entity(initialValue) {
 	    _.assign(this, initialValue);
 	};
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
@@ -416,7 +416,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Presenter;
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
@@ -429,7 +429,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
-	            path: null,
+	            // path: null,
 	            // type: null,
 	            in: null,
 	            out: null,
@@ -441,8 +441,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 
 	        this.storage = storage;
+	        this._defaultPath = properties.defaultPath;
+
+	        if (_.isArray(properties.interfaceDefs)) {
+	            properties.interfaceDefs = _.zipObject(properties.interfaceDefs);
+	        }
+
 	        this._interfaceDefs = _.mapValues(properties.interfaceDefs, function(v) {
-	            return _.defaults(v, defaultInterfaceDef);
+	            return _.defaults(_.isObject(v) ? v : {}, defaultInterfaceDef);
 	        });
 	        _.defaults(this._interfaceDefs.add, { type: 'set' });
 	        _.defaults(this._interfaceDefs.bulkAdd, { type: 'set' });
@@ -497,7 +503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _getInterfaceDef(func) {
 	    return _.defaults(this._interfaceDefs[func] || {}, {
-	        path: this.path,
+	        path: this._defaultPath,
 	    });
 	};
 
@@ -529,7 +535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Repository;
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
@@ -556,7 +562,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = Storage;
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
@@ -678,7 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = View;
-
+	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },

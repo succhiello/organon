@@ -4,7 +4,7 @@ var util = require('./util'),
     Repository = function Repository(storage, properties) {
 
         var defaultInterfaceDef = {
-            path: null,
+            // path: null,
             // type: null,
             in: null,
             out: null,
@@ -16,8 +16,14 @@ var util = require('./util'),
         });
 
         this.storage = storage;
+        this._defaultPath = properties.defaultPath;
+
+        if (_.isArray(properties.interfaceDefs)) {
+            properties.interfaceDefs = _.zipObject(properties.interfaceDefs);
+        }
+
         this._interfaceDefs = _.mapValues(properties.interfaceDefs, function(v) {
-            return _.defaults(v, defaultInterfaceDef);
+            return _.defaults(_.isObject(v) ? v : {}, defaultInterfaceDef);
         });
         _.defaults(this._interfaceDefs.add, { type: 'set' });
         _.defaults(this._interfaceDefs.bulkAdd, { type: 'set' });
@@ -72,7 +78,7 @@ function _genericSinkFactory(name, upstream) {
 
 function _getInterfaceDef(func) {
     return _.defaults(this._interfaceDefs[func] || {}, {
-        path: this.path,
+        path: this._defaultPath,
     });
 };
 
