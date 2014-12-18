@@ -8,12 +8,9 @@ var Events = function Events(properties) {
     self._unsubscriber = new Bacon.Bus();
 
     self._unsubscriber.onValue(function() {
-        console.log(self.name + ' reset');
         delete self.ev;
-        self.ev = _.mapValues(events, function(eventThunk, k) {
-            var stream = eventThunk.call(self).takeUntil(self._unsubscriber);
-            stream.onEnd(function() {console.log(k);});
-            return stream;
+        self.ev = _.mapValues(events, function(eventThunk) {
+            return eventThunk.call(self).takeUntil(self._unsubscriber);
         });
     });
 };
