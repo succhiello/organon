@@ -85,16 +85,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports.util = util;
-	module.exports.entity = { Entity: __webpack_require__(8) };
-	module.exports.presenter = { Presenter: __webpack_require__(9) };
-	module.exports.repository = { Repository: __webpack_require__(10) };
+	module.exports.events = { Events: __webpack_require__(8) };
+	module.exports.entity = { Entity: __webpack_require__(9) };
+	module.exports.presenter = { Presenter: __webpack_require__(10) };
+	module.exports.repository = { Repository: __webpack_require__(11) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(11),
-	    RESTApiStorage: __webpack_require__(12)
+	    Storage: __webpack_require__(12),
+	    RESTApiStorage: __webpack_require__(13)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(13),
-	    AppView: __webpack_require__(14)
+	    View: __webpack_require__(14),
+	    AppView: __webpack_require__(15)
 	};
 
 	function _App(config) {
@@ -372,6 +373,38 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
+
+	var Events = function Events(properties) {
+
+	    var self = this,
+	        events = (properties.events || self.events) || {};
+
+	    self._unsubscriber = new Bacon.Bus();
+
+	    self._unsubscriber.onValue(function() {
+	        console.log(self.name + ' reset');
+	        delete self.ev;
+	        self.ev = _.mapValues(events, function(eventThunk, k) {
+	            var stream = eventThunk.call(self).takeUntil(self._unsubscriber);
+	            stream.onEnd(function() {console.log(k);});
+	            return stream;
+	        });
+	    });
+	};
+
+	Events.prototype.resetEvent = function resetEvent() {
+	    this._unsubscriber.push();
+	};
+
+	module.exports = Events;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
 
 	module.exports = function Entity(initialValue) {
@@ -381,7 +414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -420,7 +453,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -539,7 +572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -566,12 +599,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(11),
+	var Storage = __webpack_require__(12),
 	    inherit = __webpack_require__(7).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
@@ -606,60 +639,84 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
 
-	var View = function View(app, properties) {
+	var inherit = __webpack_require__(7).inherit,
+	    Events = __webpack_require__(8),
+	    View = inherit(Events, function View(app, properties) {
+
+	        var self = this;
 
 	        properties = _.defaults(properties || {}, {
-	            childDefs: this.childDefs || {},
-	            template: this.template || '',
-	            name: this.name || '',
-	            el: this.el || '',
-	            presenter: this.presenter || null,
-	            initialize: this.initialize || null
+	            childDefs: self.childDefs || {},
+	            widgets: self.widgets || {},
+	            template: self.template || '',
+	            name: self.name || '',
+	            el: self.el || '',
+	            presenter: self.presenter || null,
+	            initialize: self.initialize || null
 	        });
 
-	        this.app = app;
+	        self.app = app;
 
-	        this.children = _.mapValues(properties.childDefs, function(v) {
+	        self.children = _.mapValues(properties.childDefs, function(v) {
 	            return _.isPlainObject(v) ? v : { view: v };
 	        });
 
-	        this.presenter = properties.presenter;
+	        self.presenter = properties.presenter;
 
-	        this._template = properties.template;
-	        this.name = properties.name;
-	        this.el = properties.el;
-	        this.$el = $(properties.el);
+	        self._template = properties.template;
+	        self.name = properties.name;
+	        self.el = properties.el;
 
-	        this.onRender().assign(this, 'renderTemplate', this._template);
+	        Events.call(self, properties);
 
-	        _.forIn(this.children, function(v) {
-	            this.onPostRender().map(v.map).assign(v.view, 'render');
-	        }, this);
+	        self.onPreRender().onValue(function() {
+	            self.$el = $(properties.el);
+	        });
+
+	        self.onRender()
+	            .doAction(self, 'renderTemplate', self._template)
+	            .doAction(function() {
+	                delete self.$;
+	                self.$ = _.mapValues(properties.widgets, function(widget) {
+	                    if (_.isString(widget)) {
+	                        return self.$el.find(widget);
+	                    } else if(_.isFunction(widget)) {
+	                        return widget.call(this);
+	                    } else {
+	                        throw new Error('invalid widget definition "' + widget + '".');
+	                    }
+	                });
+	            })
+	            .assign(self, 'resetEvent');
+
+	        _.forIn(self.children, function(v) {
+	            self.onPostRender().map(v.map).assign(v.view, 'render');
+	        });
 
 	        if (properties.initialize) {
-	            properties.initialize.call(this);
+	            properties.initialize.call(self);
 	        }
-	    };
+	    });
 
 	View.prototype.onPreRender = function onPreRender(f) {
 	    return this.app.onPreRenderView(this.name, f);
-	}
+	};
 
 	View.prototype.onRender = function onRender(f) {
 	    return this.app.onRenderView(this.name, f);
-	}
+	};
 
 	View.prototype.onPostRender = function onPostRender(f) {
 	    return this.app.onPostRenderView(this.name, f);
-	}
+	};
 
 	View.prototype.renderHTML = function renderHTML(html) {
-	    $(this.el).html(html);
+	    this.$el.html(html);
 	};
 
 	View.prototype.renderTemplate = function renderTemplate(template, data) {
@@ -674,7 +731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	View.prototype.showElement = function showElement($el, isShown) {
 	    if (_.isString($el)) {
-	        $el = $(this.el).find($el);
+	        $el = this.$el.find($el);
 	    }
 	    if (isShown) {
 	        $el.show();
@@ -688,10 +745,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var View = __webpack_require__(13),
+	var View = __webpack_require__(14),
 	    inherit = __webpack_require__(7).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 

@@ -29,6 +29,7 @@ onReady = module.exports.onReady = function onReady(f) {
 };
 
 module.exports.util = util;
+module.exports.events = { Events: require('./events') };
 module.exports.entity = { Entity: require('./entity') };
 module.exports.presenter = { Presenter: require('./presenter') };
 module.exports.repository = { Repository: require('./repository') };
