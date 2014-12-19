@@ -27,6 +27,7 @@ var inherit = require('./util').inherit,
         self._template = properties.template;
         self.name = properties.name;
         self.el = properties.el;
+        self.$el = $(properties.el);
 
         Events.call(self, properties);
 
@@ -42,7 +43,7 @@ var inherit = require('./util').inherit,
                     if (_.isString(widget)) {
                         return self.$el.find(widget);
                     } else if(_.isFunction(widget)) {
-                        return widget.call(this);
+                        return widget.call(self);
                     } else {
                         throw new Error('invalid widget definition "' + widget + '".');
                     }

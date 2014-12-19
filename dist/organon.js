@@ -378,16 +378,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Events = function Events(properties) {
 
 	    var self = this,
-	        events = (properties.events || self.events) || {};
+	        events = (properties.events || self.events) || {},
+	        debug = properties.debug || false;
 
 	    self._unsubscriber = new Bacon.Bus();
 
 	    self._unsubscriber.onValue(function() {
-	        console.log(self.name + ' reset');
 	        delete self.ev;
-	        self.ev = _.mapValues(events, function(eventThunk, k) {
-	            var stream = eventThunk.call(self).takeUntil(self._unsubscriber);
-	            stream.onEnd(function() {console.log(k);});
+	        self.ev = _.mapValues(events, function(thunk, name) {
+	            var stream = thunk.call(self).takeUntil(self._unsubscriber);
+	            if (debug) {
+	                stream.log('organon.events.' + (properties.name ? properties.name + '.' : '') + name);
+	            }
 	            return stream;
 	        });
 	    });
@@ -671,6 +673,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        self._template = properties.template;
 	        self.name = properties.name;
 	        self.el = properties.el;
+	        self.$el = $(properties.el);
 
 	        Events.call(self, properties);
 
@@ -686,7 +689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (_.isString(widget)) {
 	                        return self.$el.find(widget);
 	                    } else if(_.isFunction(widget)) {
-	                        return widget.call(this);
+	                        return widget.call(self);
 	                    } else {
 	                        throw new Error('invalid widget definition "' + widget + '".');
 	                    }
