@@ -665,7 +665,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        self.app = app;
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
-	            return _.isPlainObject(v) ? v : { view: v };
+	            if (_.isPlainObject(v)) {
+	                if (v.view) {
+	                    return v;
+	                } else {
+	                    return {
+	                        view: new View(app, _.defaults(v, {
+	                            presenter: self.presenter
+	                        })),
+	                        map: v.map
+	                    };
+	                }
+	            } else {
+	                return { view: v };
+	            }
 	        });
 
 	        self.presenter = properties.presenter;
