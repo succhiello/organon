@@ -47,18 +47,20 @@ var inherit = require('./util').inherit,
         self.onPreRender().onValue(function() {
             self.$el = $(properties.el);
         });
+        self.el$ = self.onPreRender().map($, properties.el, void 0).toProperty();
 
         self.onRender()
             .doAction(self, 'renderTemplate', self._template)
-            .doAction(function() {
+            .map(self.el$)
+            .doAction(function($el) {
                 delete self.$;
                 self.$ = _.mapValues(properties.widgets, function(widget) {
                     if (_.isString(widget)) {
-                        return self.$el.find(widget);
+                        return $el.find(widget);
                     } else if(_.isFunction(widget)) {
-                        return widget.call(self);
+                        return widget.call(self, $el);
                     } else {
-                        throw new Error('invalid widget definition "' + widget + '".');
+                        return widget;
                     }
                 });
             })
