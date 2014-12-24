@@ -8,10 +8,10 @@ var Events = function Events(properties) {
 
     self._unsubscriber = new Bacon.Bus();
 
-    self._unsubscriber.onValue(function() {
+    self._unsubscriber.onValue(function(arg) {
         delete self.ev;
         self.ev = _.mapValues(events, function(thunk, name) {
-            var stream = thunk.call(self).takeUntil(self._unsubscriber);
+            var stream = thunk.call(self, arg).takeUntil(self._unsubscriber);
             if (debug) {
                 stream.log('organon.events.' + (properties.name ? properties.name + '.' : '') + name);
             }
@@ -20,8 +20,8 @@ var Events = function Events(properties) {
     });
 };
 
-Events.prototype.resetEvent = function resetEvent() {
-    this._unsubscriber.push();
+Events.prototype.resetEvent = function resetEvent(arg) {
+    this._unsubscriber.push(arg);
 };
 
 module.exports = Events;

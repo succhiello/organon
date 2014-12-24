@@ -383,10 +383,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    self._unsubscriber = new Bacon.Bus();
 
-	    self._unsubscriber.onValue(function() {
+	    self._unsubscriber.onValue(function(arg) {
 	        delete self.ev;
 	        self.ev = _.mapValues(events, function(thunk, name) {
-	            var stream = thunk.call(self).takeUntil(self._unsubscriber);
+	            var stream = thunk.call(self, arg).takeUntil(self._unsubscriber);
 	            if (debug) {
 	                stream.log('organon.events.' + (properties.name ? properties.name + '.' : '') + name);
 	            }
@@ -395,8 +395,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	};
 
-	Events.prototype.resetEvent = function resetEvent() {
-	    this._unsubscriber.push();
+	Events.prototype.resetEvent = function resetEvent(arg) {
+	    this._unsubscriber.push(arg);
 	};
 
 	module.exports = Events;
@@ -665,7 +665,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        self.app = app;
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
-	            return _.isPlainObject(v) ? v : { view: v };
+	            if (_.isPlainObject(v)) {
+	                if (v.view) {
+	                    return v;
+	                } else {
+	                    return {
+	                        view: new View(app, _.defaults(v, {
+	                            presenter: self.presenter
+	                        })),
+	                        map: v.map
+	                    };
+	                }
+	            } else {
+	                return { view: v };
+	            }
 	        });
 
 	        self.presenter = properties.presenter;
@@ -680,18 +693,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        self.onPreRender().onValue(function() {
 	            self.$el = $(properties.el);
 	        });
+	        self.el$ = self.onPreRender().map($, properties.el, void 0).toProperty();
 
 	        self.onRender()
 	            .doAction(self, 'renderTemplate', self._template)
-	            .doAction(function() {
+	            .map(self.el$)
+	            .doAction(function($el) {
 	                delete self.$;
 	                self.$ = _.mapValues(properties.widgets, function(widget) {
 	                    if (_.isString(widget)) {
-	                        return self.$el.find(widget);
+	                        return $el.find(widget);
 	                    } else if(_.isFunction(widget)) {
-	                        return widget.call(self);
+	                        return widget.call(self, $el);
 	                    } else {
-	                        throw new Error('invalid widget definition "' + widget + '".');
+	                        return widget;
 	                    }
 	                });
 	            })
