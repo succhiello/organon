@@ -53,6 +53,7 @@ function _App(config) {
     };
 
     this.config = _.defaults(config, {
+        debug: false,
         body: 'body',
         link: 'a',
         defaultView: '',
@@ -72,6 +73,8 @@ function _App(config) {
         _path = new Bacon.Bus(),
         _view = new Bacon.Bus(),
         self = this;
+
+    this.debug = this.config.debug;
 
     this.observe = function observe(eventInfo, f) {
         return _observe(_event, eventInfo, f);
