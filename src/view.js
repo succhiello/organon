@@ -7,6 +7,7 @@ var inherit = require('./util').inherit,
         var self = this;
 
         properties = _.defaults(properties || {}, {
+            debug: self.debug || app.debug,
             childDefs: self.childDefs || {},
             widgets: self.widgets || {},
             template: self.template || '',

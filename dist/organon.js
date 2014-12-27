@@ -109,6 +109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this.config = _.defaults(config, {
+	        debug: false,
 	        body: 'body',
 	        link: 'a',
 	        defaultView: '',
@@ -128,6 +129,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _path = new Bacon.Bus(),
 	        _view = new Bacon.Bus(),
 	        self = this;
+
+	    this.debug = this.config.debug;
 
 	    this.observe = function observe(eventInfo, f) {
 	        return _observe(_event, eventInfo, f);
@@ -653,6 +656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var self = this;
 
 	        properties = _.defaults(properties || {}, {
+	            debug: self.debug || app.debug,
 	            childDefs: self.childDefs || {},
 	            widgets: self.widgets || {},
 	            template: self.template || '',
