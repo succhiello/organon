@@ -163,7 +163,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    _addEventRegisters(this, [
 	        'preLoadView', 'loadView', 'postLoadView',
-	        'preRenderView', 'renderView', 'postRenderView',
 	        'leaveView'
 	    ]);
 
@@ -648,31 +647,43 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var View = __webpack_require__(16),
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(16),
 	    inherit = __webpack_require__(7).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
-	        View.call(this, app, properties);
+	        this.app = app;
+
+	        properties = _.defaults(properties || {}, {
+	            name: this.name || ''
+	        });
+
+	        this.onPreLoad$ = app.onPreLoadView(properties.name);
+	        this.onLoad$ = app.onLoadView(properties.name);
+	        this.onPostLoad$ = app.onPostLoadView(properties.name);
+	        this.onLeave$ = app.onLeaveView(properties.name);
+
+	        View.call(this, properties);
 	    });
 
 	AppView.prototype.onPreLoad = function onPreLoad(f) {
-	    return this.app.onPreLoadView(this.name, f);
+	    return this.onPreLoad$.onValue(_.bind(f, this));
 	}
 
 	AppView.prototype.onLoad = function onLoad(f) {
-	    return this.app.onLoadView(this.name, f);
+	    return this.onLoad$.onValue(_.bind(f, this));
 	}
 
 	AppView.prototype.onPostLoad = function onPostLoad(f) {
-	    return this.app.onPostLoadView(this.name, f);
+	    return this.onPostLoad$.onValue(_.bind(f, this));
 	}
 
 	AppView.prototype.onLeave = function onLeave(f) {
-	    return this.app.onLeaveView(this.name, f);
+	    return this.onLeave$.onValue(_.bind(f, this));
 	}
 
 	module.exports = AppView;
-
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
 /* 15 */
@@ -680,28 +691,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(16),
 	    inherit = __webpack_require__(7).inherit,
-	    ChildView = inherit(View, function ChildView(app, parent, properties) {
+	    ChildView = inherit(View, function ChildView(parent, properties) {
 
 	        properties = _.defaults(properties || {}, {
 	            renderWithParent: this.renderWithParent || true,
-	            parentParamsMapper: this.parentParamsMapper || null
+	            parentParamsMapper: this.parentParamsMapper || null,
+	            presenter: this.presenter || parent.presenter
 	        });
 
 	        this.parent = parent;
 
 	        if (properties.renderWithParent) {
-	            var parentPostRender = parent.onPostRender();
+	            var parentPostRender = parent.onPostRender$;
 	            if (properties.parentParamsMapper) {
 	                parentPostRender = parentPostRender.map(properties.parentParamsMapper);
 	            };
 	            parentPostRender.assign(this, 'render');
 	        }
 
-	        View.call(this, app, properties);
-
-	        if (!this.presenter) {
-	            this.presenter = parent.presenter;
-	        }
+	        View.call(this, properties);
 	    });
 
 	module.exports = ChildView;
@@ -712,17 +720,22 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
+	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
 	var inherit = __webpack_require__(7).inherit,
 	    Events = __webpack_require__(8),
-	    View = inherit(Events, function View(app, properties) {
+	    isState = function isState (state, renderEvent) { return renderEvent.state == state; },
+	    View = inherit(Events, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(15);
+	            ChildView = __webpack_require__(15),
+	            renderEvent$ = new Bacon.Bus(),
+	            PRE_RENDER = 0,
+	            RENDER = 1,
+	            POST_RENDER = 2;
 
 	        properties = _.defaults(properties || {}, {
-	            debug: self.debug || app.debug,
+	            debug: self.debug || false,
 	            childDefs: self.childDefs || {},
 	            widgets: self.widgets || {},
 	            template: self.template || '',
@@ -732,7 +745,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            initialize: self.initialize || null
 	        });
 
-	        self.app = app;
+	        self.render$ = new Bacon.Bus();
 
 	        self.presenter = properties.presenter;
 	        self._template = properties.template;
@@ -742,31 +755,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        Events.call(self, properties);
 
-	        self.onPreRender().onValue(function() {
-	            self.$el = $(properties.el);
-	        });
-	        self.el$ = self.onPreRender().map($, properties.el, void 0).toProperty();
+	        self.onPreRender$ = renderEvent$.filter(isState, PRE_RENDER).map('.data');
+	        self.onRender$ = renderEvent$.filter(isState, RENDER).map('.data');
+	        self.onPostRender$ = renderEvent$.filter(isState, POST_RENDER).map('.data');
 
-	        self.onRender()
-	            .doAction(self, 'renderTemplate', self._template)
-	            .map(self.el$)
-	            .doAction(function($el) {
-	                delete self.$;
-	                self.$ = _.mapValues(properties.widgets, function(widget) {
-	                    if (_.isString(widget)) {
-	                        return $el.find(widget);
-	                    } else if(_.isFunction(widget)) {
-	                        return widget.call(self, $el);
-	                    } else {
-	                        return widget;
-	                    }
-	                });
-	            })
-	            .assign(self, 'resetEvent');
+	        self.render$.onValue(function(data) {
+
+	            self.$el = $(properties.el);
+
+	            renderEvent$.push({state: PRE_RENDER, data: data});
+
+	            self.renderTemplate(self._template, data);
+
+	            self.$ = _.mapValues(properties.widgets, function(widget) {
+	                if (_.isString(widget)) {
+	                    return self.$el.find(widget);
+	                } else if(_.isFunction(widget)) {
+	                    return widget.call(self, self.$el);
+	                } else {
+	                    return widget;
+	                }
+	            });
+	            self.resetEvent(self.$el);
+
+	            renderEvent$.push({state: RENDER, data: data});
+
+	            renderEvent$.push({state: POST_RENDER, data: data});
+	        });
+
+	        self.el$ = self.onPreRender$.map($, properties.el, void 0).toProperty();
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
 	            if (_.isPlainObject(v)) {
-	                return new ChildView(app, self, v);
+	                return new ChildView(self, v);
 	            } else {
 	                return v;
 	            }
@@ -778,15 +799,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 
 	View.prototype.onPreRender = function onPreRender(f) {
-	    return this.app.onPreRenderView(this.name, f);
+	    return this.onPreRender$.onValue(_.bind(f, this));
 	};
 
 	View.prototype.onRender = function onRender(f) {
-	    return this.app.onRenderView(this.name, f);
+	    return this.onRender$.onValue(_.bind(f, this));
 	};
 
 	View.prototype.onPostRender = function onPostRender(f) {
-	    return this.app.onPostRenderView(this.name, f);
+	    return this.onPostRender$.onValue(_.bind(f, this));
 	};
 
 	View.prototype.renderHTML = function renderHTML(html) {
@@ -798,9 +819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	View.prototype.render = function render(data) {
-	    this.app.trigger('preRenderView', this.name, data);
-	    this.app.trigger('renderView', this.name, data);
-	    this.app.trigger('postRenderView', this.name, data);
+	    this.render$.push(data);
 	};
 
 	View.prototype.showElement = function showElement($el, isShown) {
@@ -816,7 +835,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = View;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ }
 /******/ ])

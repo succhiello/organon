@@ -107,7 +107,6 @@ function _App(config) {
 
     _addEventRegisters(this, [
         'preLoadView', 'loadView', 'postLoadView',
-        'preRenderView', 'renderView', 'postRenderView',
         'leaveView'
     ]);
 
