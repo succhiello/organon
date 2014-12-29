@@ -94,8 +94,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    RESTApiStorage: __webpack_require__(13)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(14),
-	    AppView: __webpack_require__(15)
+	    View: __webpack_require__(16),
+	    AppView: __webpack_require__(14),
+	    ChildView: __webpack_require__(15)
 	};
 
 	function _App(config) {
@@ -647,13 +648,78 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var View = __webpack_require__(16),
+	    inherit = __webpack_require__(7).inherit,
+	    AppView = inherit(View, function AppView(app, properties) {
+
+	        View.call(this, app, properties);
+	    });
+
+	AppView.prototype.onPreLoad = function onPreLoad(f) {
+	    return this.app.onPreLoadView(this.name, f);
+	}
+
+	AppView.prototype.onLoad = function onLoad(f) {
+	    return this.app.onLoadView(this.name, f);
+	}
+
+	AppView.prototype.onPostLoad = function onPostLoad(f) {
+	    return this.app.onPostLoadView(this.name, f);
+	}
+
+	AppView.prototype.onLeave = function onLeave(f) {
+	    return this.app.onLeaveView(this.name, f);
+	}
+
+	module.exports = AppView;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(16),
+	    inherit = __webpack_require__(7).inherit,
+	    ChildView = inherit(View, function ChildView(app, parent, properties) {
+
+	        properties = _.defaults(properties || {}, {
+	            renderWithParent: this.renderWithParent || true,
+	            parentParamsMapper: this.parentParamsMapper || null
+	        });
+
+	        this.parent = parent;
+
+	        if (properties.renderWithParent) {
+	            var parentPostRender = parent.onPostRender();
+	            if (properties.parentParamsMapper) {
+	                parentPostRender = parentPostRender.map(properties.parentParamsMapper);
+	            };
+	            parentPostRender.assign(this, 'render');
+	        }
+
+	        View.call(this, app, properties);
+
+	        if (!this.presenter) {
+	            this.presenter = parent.presenter;
+	        }
+	    });
+
+	module.exports = ChildView;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(_, $) {'use strict';
 
 	var inherit = __webpack_require__(7).inherit,
 	    Events = __webpack_require__(8),
 	    View = inherit(Events, function View(app, properties) {
 
-	        var self = this;
+	        var self = this,
+	            ChildView = __webpack_require__(15);
 
 	        properties = _.defaults(properties || {}, {
 	            debug: self.debug || app.debug,
@@ -668,25 +734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        self.app = app;
 
-	        self.children = _.mapValues(properties.childDefs, function(v) {
-	            if (_.isPlainObject(v)) {
-	                if (v.view) {
-	                    return v;
-	                } else {
-	                    return {
-	                        view: new View(app, _.defaults(v, {
-	                            presenter: self.presenter
-	                        })),
-	                        map: v.map
-	                    };
-	                }
-	            } else {
-	                return { view: v };
-	            }
-	        });
-
 	        self.presenter = properties.presenter;
-
 	        self._template = properties.template;
 	        self.name = properties.name;
 	        self.el = properties.el;
@@ -716,8 +764,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            })
 	            .assign(self, 'resetEvent');
 
-	        _.forIn(self.children, function(v) {
-	            self.onPostRender().map(v.map).assign(v.view, 'render');
+	        self.children = _.mapValues(properties.childDefs, function(v) {
+	            if (_.isPlainObject(v)) {
+	                return new ChildView(app, self, v);
+	            } else {
+	                return v;
+	            }
 	        });
 
 	        if (properties.initialize) {
@@ -765,36 +817,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = View;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(6)))
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var View = __webpack_require__(14),
-	    inherit = __webpack_require__(7).inherit,
-	    AppView = inherit(View, function AppView(app, properties) {
-
-	        View.call(this, app, properties);
-	    });
-
-	AppView.prototype.onPreLoad = function onPreLoad(f) {
-	    return this.app.onPreLoadView(this.name, f);
-	}
-
-	AppView.prototype.onLoad = function onLoad(f) {
-	    return this.app.onLoadView(this.name, f);
-	}
-
-	AppView.prototype.onPostLoad = function onPostLoad(f) {
-	    return this.app.onPostLoadView(this.name, f);
-	}
-
-	AppView.prototype.onLeave = function onLeave(f) {
-	    return this.app.onLeaveView(this.name, f);
-	}
-
-	module.exports = AppView;
-
 
 /***/ }
 /******/ ])

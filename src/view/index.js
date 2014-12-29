@@ -1,10 +1,11 @@
 'use strict';
 
-var inherit = require('./util').inherit,
-    Events = require('./events'),
+var inherit = require('../util').inherit,
+    Events = require('../events'),
     View = inherit(Events, function View(app, properties) {
 
-        var self = this;
+        var self = this,
+            ChildView = require('./childView');
 
         properties = _.defaults(properties || {}, {
             debug: self.debug || app.debug,
@@ -19,25 +20,7 @@ var inherit = require('./util').inherit,
 
         self.app = app;
 
-        self.children = _.mapValues(properties.childDefs, function(v) {
-            if (_.isPlainObject(v)) {
-                if (v.view) {
-                    return v;
-                } else {
-                    return {
-                        view: new View(app, _.defaults(v, {
-                            presenter: self.presenter
-                        })),
-                        map: v.map
-                    };
-                }
-            } else {
-                return { view: v };
-            }
-        });
-
         self.presenter = properties.presenter;
-
         self._template = properties.template;
         self.name = properties.name;
         self.el = properties.el;
@@ -67,8 +50,12 @@ var inherit = require('./util').inherit,
             })
             .assign(self, 'resetEvent');
 
-        _.forIn(self.children, function(v) {
-            self.onPostRender().map(v.map).assign(v.view, 'render');
+        self.children = _.mapValues(properties.childDefs, function(v) {
+            if (_.isPlainObject(v)) {
+                return new ChildView(app, self, v);
+            } else {
+                return v;
+            }
         });
 
         if (properties.initialize) {

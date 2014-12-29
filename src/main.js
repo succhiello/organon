@@ -39,7 +39,8 @@ module.exports.storage = {
 };
 module.exports.view = {
     View: require('./view'),
-    AppView: require('./view/appView')
+    AppView: require('./view/appView'),
+    ChildView: require('./view/childView')
 };
 
 function _App(config) {
