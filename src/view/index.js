@@ -2,7 +2,6 @@
 
 var inherit = require('../util').inherit,
     Events = require('../events'),
-    isState = function isState (state, renderEvent) { return renderEvent.state == state; },
     View = inherit(Events, function View(properties) {
 
         var self = this,
@@ -110,5 +109,9 @@ View.prototype.showElement = function showElement($el, isShown) {
         $el.hide();
     }
 };
+
+function isState(state, renderEvent) {
+    return renderEvent.state === state;
+}
 
 module.exports = View;

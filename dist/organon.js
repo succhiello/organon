@@ -59,10 +59,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	__webpack_require__(1);
 	__webpack_require__(2);
 
-	var util = __webpack_require__(7),
+	var Router = __webpack_require__(7),
 	    _app = null,
 	    _appEvent = new Bacon.Bus(),
-	    onReady = null;
+	    onReady = null,
+	    INITIALIZE = 0,
+	    READY = 1;
 
 	module.exports.run = function run(config) {
 	    _app = new _App(config);
@@ -72,31 +74,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _app;
 	};
 
-	module.exports.on = function on(eventInfo, f) {
-	    return _on(_appEvent, eventInfo, f);
-	};
-
 	module.exports.onInitialize = function onInitialize(f) {
-	    return _on(_appEvent, 'initialize', f);
+	    return _appEvent.filter(isState, INITIALIZE).map('.params').onValue(f);
 	};
 
 	onReady = module.exports.onReady = function onReady(f) {
-	    return _on(_appEvent, 'ready', f);
+	    return _appEvent.filter(isState, READY).map('.params').onValue(f);
 	};
 
-	module.exports.util = util;
-	module.exports.events = { Events: __webpack_require__(8) };
-	module.exports.entity = { Entity: __webpack_require__(9) };
-	module.exports.presenter = { Presenter: __webpack_require__(10) };
-	module.exports.repository = { Repository: __webpack_require__(11) };
+	module.exports.Router = Router;
+	module.exports.util = __webpack_require__(8);
+	module.exports.events = { Events: __webpack_require__(9) };
+	module.exports.entity = { Entity: __webpack_require__(10) };
+	module.exports.presenter = { Presenter: __webpack_require__(11) };
+	module.exports.repository = { Repository: __webpack_require__(12) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(12),
-	    RESTApiStorage: __webpack_require__(13)
+	    Storage: __webpack_require__(13),
+	    RESTApiStorage: __webpack_require__(14)
 	};
 	module.exports.view = {
-	    View: __webpack_require__(16),
-	    AppView: __webpack_require__(14),
-	    ChildView: __webpack_require__(15)
+	    View: __webpack_require__(17),
+	    AppView: __webpack_require__(15),
+	    ChildView: __webpack_require__(16)
 	};
 
 	function _App(config) {
@@ -118,32 +117,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        initialPath: this.currentPath()
 	    });
 
-	    var _routes = _.map(this.config.routes, function(v, k) {
-	        var keys = [];
-	        return {
-	            regexp: util.pathToRegexp(k, keys),
-	            keys: keys,
-	            view: v
-	        };
-	    }),
-	        _event = new Bacon.Bus(),
-	        _path = new Bacon.Bus(),
-	        _view = new Bacon.Bus(),
-	        self = this;
+	    this.router = new Router(this.config);
 
 	    this.debug = this.config.debug;
-
-	    this.observe = function observe(eventInfo, f) {
-	        return _observe(_event, eventInfo, f);
-	    };
-
-	    this.on = function on(eventInfo, f) {
-	        return _on(_event, eventInfo, f);
-	    };
-
-	    this.trigger = function trigger(eventName, value, params) {
-	        _trigger(_event, eventName, value, params);
-	    };
 
 	    this.route = function route(path, params) {
 	        if (params) {
@@ -153,118 +129,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
 	    };
 
-	    this.loadView = function loadView(view, params) {
-	        _view.push({view: view, params: params});
-	    };
-
 	    this.dispatch = function dispatch(path) {
-	        _path.push(path || this.currentPath());
+	        this.router.dispatch(path || this.currentPath());
 	    };
+	    this.onLeaveView = this.router.onLeave;
 
-	    _addEventRegisters(this, [
-	        'preLoadView', 'loadView', 'postLoadView',
-	        'leaveView'
-	    ]);
-
-	    _event.plug(Bacon.mergeAll(
-	        _view.map(_makeViewEventInfo, 'preLoadView'),
-	        _view.map(_makeViewEventInfo, 'loadView'),
-	        _view.map(_makeViewEventInfo, 'postLoadView')
-	    ));
-
-	    _view.plug(_path.scan(null, function(viewInfo, path) {
-	        if (viewInfo) {
-	            self.trigger('leaveView', viewInfo.view);
-	        }
-	        return _parse(path);
-	    }).where().truthy());
-
-	    _trigger(_appEvent, 'initialize', 'app', this);
-	    _trigger(_appEvent, 'ready', 'app', this);
+	    _appEvent.push({state: INITIALIZE, params: this});
+	    _appEvent.push({state: READY, params: this});
 
 	    this.dispatch(config.initialPath);
-
-	    function _parse(path) {
-
-	        if (path) {
-	            path = path.replace(/^#\//, '/');
-	        } else {
-	            path = '';
-	        }
-
-	        var paths = path.split('?'),
-	            params = {};
-	        if (paths.length === 2) {
-	            paths[1].replace(/([^&=]+)=([^&]*)/g, function() {
-	                params[decodeURIComponent(arguments[1])] = decodeURIComponent(arguments[2]);
-	            });
-	        }
-
-	        var viewInfo = {
-	            view: config.defaultView,
-	            params: params
-	        };
-	        _.find(_routes, function(route) {
-
-	            var m = route.regexp.exec(paths[0]);
-	            if (!m) {
-	                return false;
-	            }
-
-	            _.each(m.slice(1), function(value, i) {
-	                params[route.keys[i].name] = decodeURIComponent(value);
-	            });
-
-	            viewInfo.view = route.view;
-	            viewInfo.params = params;
-
-	            return true;
-	        });
-
-	        return viewInfo;
-	    }
 	}
 
-	function _addEventRegisters(obj, eventNames) {
-	    _.each(eventNames, function(event) {
-	        obj['on' + util.capitalize(event)] = function(value, f) {
-	            return obj.on({event: event, value: value}, f);
-	        }
-	    }, obj);
-	}
-
-	function _trigger(bus, eventName, value, params) {
-	    bus.push({event: eventName, value: value, params: params})
-	}
-
-	function _makeViewEventInfo(eventName, viewInfo) {
-	    return {
-	        event: eventName,
-	        value: viewInfo.view,
-	        params: viewInfo.params
-	    }
-	}
-
-	function _makeEventInfo(info) {
-	    if (_.isObject(info)) {
-	        return info;
-	    } else if (_.isString(info)) {
-	        return _(['event', 'value']).zipObject(info.split(':')).omit(function(v) { return _.isUndefined(v); }).value();
-	    } else {
-	        throw new TypeError('invalid event info value "' + info + '".');
-	    }
-	}
-
-	function _on(stream, eventInfo, f) {
-	    return _onValueOrStream(_observe(stream, _makeEventInfo(eventInfo)).map('.params'), f);
-	}
-
-	function _observe(stream, eventInfo, f) {
-	    return _onValueOrStream(stream.where().containerOf(eventInfo), f);
-	}
-
-	function _onValueOrStream(stream, f) {
-	    return _.isUndefined(f) ? stream : stream.onValue(f);
+	function isState(state, appEvent) {
+	    return appEvent.state === state;
 	}
 
 	onReady(function(app) {
@@ -321,6 +198,111 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
+
+	var pathToRegexp = __webpack_require__(18),
+	    Router = function Router(properties) {
+
+	        var routes = {},
+	            leave$ = new Bacon.Bus();
+
+	        properties = _.defaults(properties || {}, {
+	            debug: false,
+	            routes: {},
+	            defaultRoute: null
+	        });
+
+	        this.dispatch$ = new Bacon.Bus();
+
+	        routes = _.map(properties.routes, function(name, path) {
+	            var keys = [];
+	            return {
+	                regexp: pathToRegexp(path, keys),
+	                keys: keys,
+	                name: name
+	            };
+	        });
+
+	        this.onRoute$ = this.dispatch$
+	            .map(parse, properties, routes)
+	            .where()
+	            .truthy()
+	            .scan(null, function(prev, newRoute) {
+	                if (prev) {
+	                    leave$.push(prev);
+	                }
+	                return newRoute;
+	            }).changes();
+
+	        this.onLeave$ = leave$.doAction(function(){});
+
+	        if (properties.debug) {
+	            this.onRoute$.log('organon.Router.onRoute$');
+	            this.onLeave$.log('organon.Router.onLeave$');
+	        }
+	    };
+
+	Router.prototype.dispatch = function dispatch(path) {
+	    this.dispatch$.push(path);
+	};
+
+	Router.prototype.on = Router.prototype.onRoute = function onRoute(pred) {
+	    return _.isFunction(pred) ? this.onRoute$.filter(pred) : this.onRoute$.filter(isRoute, pred);
+	};
+
+	Router.prototype.onLeave = function onLeave(pred) {
+	    return _.isFunction(pred) ? this.onLeave$.filter(pred) : this.onLeave$.filter(isRoute, pred);
+	};
+
+	function isRoute(name, route) {
+	    return route && name && route.name === name;
+	}
+
+	function parse(properties, routes, path) {
+
+	    var paths = [],
+	        params = {},
+	        name = properties.defaultRoute;
+
+	    if (!path) {
+	        path = '';
+	    }
+
+	    paths = path.replace(/^#\//, '/').split('?');
+
+	    if (paths.length === 2) {
+	        paths[1].replace(/([^&=]+)=([^&]*)/g, function(_, k, v) {
+	            params[decodeURIComponent(k)] = decodeURIComponent(v);
+	        });
+	    }
+
+	    _.find(routes, function(route) {
+
+	        var m = route.regexp.exec(paths[0]);
+	        if (!m) {
+	            return false;
+	        }
+
+	        _.each(m.slice(1), function(value, i) {
+	            params[route.keys[i].name] = decodeURIComponent(value);
+	        });
+
+	        name = route.name;
+
+	        return true;
+	    });
+
+	    return name ? { name: name, params: params } : null;
+	}
+
+	module.exports = Router;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
 
 	module.exports.capitalize = function capitalize(str) {
@@ -332,27 +314,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _.assign(dst, props || {}),
 	        defaults
 	    );
-	};
-
-	module.exports.pathToRegexp = function pathToRegexp(path, keys, sensitive, strict) {
-	    if (path instanceof RegExp) return path;
-	    if (path instanceof Array) path = '(' + path.join('|') + ')';
-	    path = path
-	        .concat(strict ? '' : '/?')
-	        .replace(/\/\(/g, '(?:/')
-	        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, function(_, slash, format, key, capture, optional){
-	            keys.push({ name: key, optional: !! optional });
-	            slash = slash || '';
-	            return ''
-	                + (optional ? '' : slash)
-	                + '(?:'
-	                + (optional ? slash : '')
-	                + (format || '') + (capture || (format && '([^/.]+?)' || '([^/]+?)')) + ')'
-	                + (optional || '');
-	        })
-	        .replace(/([\/.])/g, '\\$1')
-	        .replace(/\*/g, '(.*)');
-	    return new RegExp('^' + path + '$', sensitive ? '' : 'i');
 	};
 
 	module.exports.define = module.exports.inherit = function define(base, derived, properties) {
@@ -373,7 +334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
@@ -407,7 +368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -419,7 +380,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -458,12 +419,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	var util = __webpack_require__(7),
+	var util = __webpack_require__(8),
+	    pathToRegexp = __webpack_require__(18),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -554,7 +516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!_.isString(path)) {
 	        pathStream = upstream.map(path);
 	    } else {
-	        util.pathToRegexp(path, keys);
+	        pathToRegexp(path, keys);
 	        keys = _.map(keys, 'name');
 	        if (keys.length > 0) {
 	            dataStream = upstream.map(function(params) { return _.omit(params, keys); });
@@ -577,7 +539,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -604,13 +566,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(12),
-	    inherit = __webpack_require__(7).inherit,
+	var Storage = __webpack_require__(13),
+	    inherit = __webpack_require__(8).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
 	        Storage.call(this, properties);
@@ -644,11 +606,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(16),
-	    inherit = __webpack_require__(7).inherit,
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
+	    inherit = __webpack_require__(8).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
 	        this.app = app;
@@ -657,24 +619,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            name: this.name || ''
 	        });
 
-	        this.onPreLoad$ = app.onPreLoadView(properties.name);
-	        this.onLoad$ = app.onLoadView(properties.name);
-	        this.onPostLoad$ = app.onPostLoadView(properties.name);
-	        this.onLeave$ = app.onLeaveView(properties.name);
+	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
+	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
 	        View.call(this, properties);
 	    });
 
-	AppView.prototype.onPreLoad = function onPreLoad(f) {
-	    return this.onPreLoad$.onValue(_.bind(f, this));
-	}
-
 	AppView.prototype.onLoad = function onLoad(f) {
 	    return this.onLoad$.onValue(_.bind(f, this));
-	}
-
-	AppView.prototype.onPostLoad = function onPostLoad(f) {
-	    return this.onPostLoad$.onValue(_.bind(f, this));
 	}
 
 	AppView.prototype.onLeave = function onLeave(f) {
@@ -686,11 +638,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(16),
-	    inherit = __webpack_require__(7).inherit,
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
+	    inherit = __webpack_require__(8).inherit,
 	    ChildView = inherit(View, function ChildView(parent, properties) {
 
 	        properties = _.defaults(properties || {}, {
@@ -717,18 +669,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
-	var inherit = __webpack_require__(7).inherit,
-	    Events = __webpack_require__(8),
-	    isState = function isState (state, renderEvent) { return renderEvent.state == state; },
+	var inherit = __webpack_require__(8).inherit,
+	    Events = __webpack_require__(9),
 	    View = inherit(Events, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(15),
+	            ChildView = __webpack_require__(16),
 	            renderEvent$ = new Bacon.Bus(),
 	            PRE_RENDER = 0,
 	            RENDER = 1,
@@ -833,9 +784,200 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
+	function isState(state, renderEvent) {
+	    return renderEvent.state === state;
+	}
+
 	module.exports = View;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5), __webpack_require__(6)))
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isArray = __webpack_require__(19);
+
+	/**
+	 * Expose `pathtoRegexp`.
+	 */
+	module.exports = pathtoRegexp;
+
+	/**
+	 * The main path matching regexp utility.
+	 *
+	 * @type {RegExp}
+	 */
+	var PATH_REGEXP = new RegExp([
+	  // Match already escaped characters that would otherwise incorrectly appear
+	  // in future matches. This allows the user to escape special characters that
+	  // shouldn't be transformed.
+	  '(\\\\.)',
+	  // Match Express-style parameters and un-named parameters with a prefix
+	  // and optional suffixes. Matches appear as:
+	  //
+	  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
+	  // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
+	  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?',
+	  // Match regexp special characters that should always be escaped.
+	  '([.+*?=^!:${}()[\\]|\\/])'
+	].join('|'), 'g');
+
+	/**
+	 * Escape the capturing group by escaping special characters and meaning.
+	 *
+	 * @param  {String} group
+	 * @return {String}
+	 */
+	function escapeGroup (group) {
+	  return group.replace(/([=!:$\/()])/g, '\\$1');
+	}
+
+	/**
+	 * Attach the keys as a property of the regexp.
+	 *
+	 * @param  {RegExp} re
+	 * @param  {Array}  keys
+	 * @return {RegExp}
+	 */
+	function attachKeys (re, keys) {
+	  re.keys = keys;
+
+	  return re;
+	};
+
+	/**
+	 * Normalize the given path string, returning a regular expression.
+	 *
+	 * An empty array should be passed in, which will contain the placeholder key
+	 * names. For example `/user/:id` will then contain `["id"]`.
+	 *
+	 * @param  {(String|RegExp|Array)} path
+	 * @param  {Array}                 keys
+	 * @param  {Object}                options
+	 * @return {RegExp}
+	 */
+	function pathtoRegexp (path, keys, options) {
+	  if (!isArray(keys)) {
+	    options = keys;
+	    keys = null;
+	  }
+
+	  keys = keys || [];
+	  options = options || {};
+
+	  var strict = options.strict;
+	  var end = options.end !== false;
+	  var flags = options.sensitive ? '' : 'i';
+	  var index = 0;
+
+	  if (path instanceof RegExp) {
+	    // Match all capturing groups of a regexp.
+	    var groups = path.source.match(/\((?!\?)/g);
+
+	    // Map all the matches to their numeric indexes and push into the keys.
+	    if (groups) {
+	      for (var i = 0; i < groups.length; i++) {
+	        keys.push({
+	          name:      i,
+	          delimiter: null,
+	          optional:  false,
+	          repeat:    false
+	        });
+	      }
+	    }
+
+	    // Return the source back to the user.
+	    return attachKeys(path, keys);
+	  }
+
+	  // Map array parts into regexps and return their source. We also pass
+	  // the same keys and options instance into every generation to get
+	  // consistent matching groups before we join the sources together.
+	  if (isArray(path)) {
+	    var parts = [];
+
+	    for (var i = 0; i < path.length; i++) {
+	      parts.push(pathtoRegexp(path[i], keys, options).source);
+	    }
+	    // Generate a new regexp instance by joining all the parts together.
+	    return attachKeys(new RegExp('(?:' + parts.join('|') + ')', flags), keys);
+	  }
+
+	  // Alter the path string into a usable regexp.
+	  path = path.replace(PATH_REGEXP, function (match, escaped, prefix, key, capture, group, suffix, escape) {
+	    // Avoiding re-escaping escaped characters.
+	    if (escaped) {
+	      return escaped;
+	    }
+
+	    // Escape regexp special characters.
+	    if (escape) {
+	      return '\\' + escape;
+	    }
+
+	    var repeat   = suffix === '+' || suffix === '*';
+	    var optional = suffix === '?' || suffix === '*';
+
+	    keys.push({
+	      name:      key || index++,
+	      delimiter: prefix || '/',
+	      optional:  optional,
+	      repeat:    repeat
+	    });
+
+	    // Escape the prefix character.
+	    prefix = prefix ? '\\' + prefix : '';
+
+	    // Match using the custom capturing group, or fallback to capturing
+	    // everything up to the next slash (or next period if the param was
+	    // prefixed with a period).
+	    capture = escapeGroup(capture || group || '[^' + (prefix || '\\/') + ']+?');
+
+	    // Allow parameters to be repeated more than once.
+	    if (repeat) {
+	      capture = capture + '(?:' + prefix + capture + ')*';
+	    }
+
+	    // Allow a parameter to be optional.
+	    if (optional) {
+	      return '(?:' + prefix + '(' + capture + '))?';
+	    }
+
+	    // Basic parameter support.
+	    return prefix + '(' + capture + ')';
+	  });
+
+	  // Check whether the path ends in a slash as it alters some match behaviour.
+	  var endsWithSlash = path[path.length - 1] === '/';
+
+	  // In non-strict mode we allow an optional trailing slash in the match. If
+	  // the path to match already ended with a slash, we need to remove it for
+	  // consistency. The slash is only valid at the very end of a path match, not
+	  // anywhere in the middle. This is important for non-ending mode, otherwise
+	  // "/test/" will match "/test//route".
+	  if (!strict) {
+	    path = (endsWithSlash ? path.slice(0, -2) : path) + '(?:\\/(?=$))?';
+	  }
+
+	  // In non-ending mode, we need prompt the capturing groups to match as much
+	  // as possible by using a positive lookahead for the end or next path segment.
+	  if (!end) {
+	    path += strict && endsWithSlash ? '' : '(?=\\/|$)';
+	  }
+
+	  return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
+	};
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = Array.isArray || function (arr) {
+	  return Object.prototype.toString.call(arr) == '[object Array]';
+	};
+
 
 /***/ }
 /******/ ])
