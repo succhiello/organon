@@ -89,13 +89,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.presenter = { Presenter: __webpack_require__(11) };
 	module.exports.repository = { Repository: __webpack_require__(12) };
 	module.exports.storage = {
-	    Storage: __webpack_require__(13),
-	    RESTApiStorage: __webpack_require__(14)
+	    Storage: __webpack_require__(16),
+	    RESTApiStorage: __webpack_require__(13)
 	};
 	module.exports.view = {
 	    View: __webpack_require__(17),
-	    AppView: __webpack_require__(15),
-	    ChildView: __webpack_require__(16)
+	    AppView: __webpack_require__(14),
+	    ChildView: __webpack_require__(15)
 	};
 
 	function _App(config) {
@@ -132,7 +132,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.dispatch = function dispatch(path) {
 	        this.router.dispatch(path || this.currentPath());
 	    };
-	    this.onLeaveView = this.router.onLeave;
 
 	    _appEvent.push({state: INITIALIZE, params: this});
 	    _appEvent.push({state: READY, params: this});
@@ -542,36 +541,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
-
-	var Storage = function Storage(properties) {
-	        _.assign(this, properties || {});
-	        this.notImplemented = new Bacon.constant(new Bacon.Error('not implemented.'));
-	    };
-
-	Storage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
-	    return this.notImplemented;
-	};
-
-	Storage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
-	    return this.notImplemented;
-	};
-
-	Storage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
-	    return this.notImplemented;
-	};
-
-	module.exports = Storage;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 
-	var Storage = __webpack_require__(13),
+	var Storage = __webpack_require__(16),
 	    inherit = __webpack_require__(8).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
@@ -606,7 +578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
@@ -638,7 +610,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
@@ -669,6 +641,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
+
+	var Storage = function Storage(properties) {
+	        _.assign(this, properties || {});
+	        this.notImplemented = new Bacon.constant(new Bacon.Error('not implemented.'));
+	    };
+
+	Storage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
+	    return this.notImplemented;
+	};
+
+	Storage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
+	    return this.notImplemented;
+	};
+
+	Storage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
+	    return this.notImplemented;
+	};
+
+	module.exports = Storage;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
+
+/***/ },
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -679,7 +678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    View = inherit(Events, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(16),
+	            ChildView = __webpack_require__(15),
 	            renderEvent$ = new Bacon.Bus(),
 	            PRE_RENDER = 0,
 	            RENDER = 1,

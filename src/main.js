@@ -76,7 +76,6 @@ function _App(config) {
     this.dispatch = function dispatch(path) {
         this.router.dispatch(path || this.currentPath());
     };
-    this.onLeaveView = this.router.onLeave;
 
     _appEvent.push({state: INITIALIZE, params: this});
     _appEvent.push({state: READY, params: this});
