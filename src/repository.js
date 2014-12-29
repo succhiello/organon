@@ -1,6 +1,7 @@
 'use strict';
 
 var util = require('./util'),
+    pathToRegexp = require('path-to-regexp'),
     Repository = function Repository(storage, properties) {
 
         var defaultInterfaceDef = {
@@ -91,7 +92,7 @@ function _makeStorageParams(upstream, path) {
     if (!_.isString(path)) {
         pathStream = upstream.map(path);
     } else {
-        util.pathToRegexp(path, keys);
+        pathToRegexp(path, keys);
         keys = _.map(keys, 'name');
         if (keys.length > 0) {
             dataStream = upstream.map(function(params) { return _.omit(params, keys); });

@@ -1,6 +1,6 @@
 'use strict';
 
-var Storage = require('../storage'),
+var Storage = require('./index'),
     inherit = require('../util').inherit,
     RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
