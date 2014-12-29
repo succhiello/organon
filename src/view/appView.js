@@ -8,24 +8,14 @@ var View = require('../view'),
             name: this.name || ''
         });
 
-        this.onPreLoad$ = app.onPreLoadView(properties.name);
-        this.onLoad$ = app.onLoadView(properties.name);
-        this.onPostLoad$ = app.onPostLoadView(properties.name);
-        this.onLeave$ = app.onLeaveView(properties.name);
+        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
+        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
         View.call(this, properties);
     });
 
-AppView.prototype.onPreLoad = function onPreLoad(f) {
-    return this.onPreLoad$.onValue(_.bind(f, this));
-}
-
 AppView.prototype.onLoad = function onLoad(f) {
     return this.onLoad$.onValue(_.bind(f, this));
-}
-
-AppView.prototype.onPostLoad = function onPostLoad(f) {
-    return this.onPostLoad$.onValue(_.bind(f, this));
 }
 
 AppView.prototype.onLeave = function onLeave(f) {
