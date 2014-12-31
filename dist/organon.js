@@ -1,10 +1,10 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
+		module.exports = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("html5-history-api"), require("lodash"), require("jquery"));
 	else if(typeof define === 'function' && define.amd)
 		define(["bacon.jquery", "bacon.matchers", "bacon", "html5-history-api", "lodash", "jquery"], factory);
 	else if(typeof exports === 'object')
-		exports["organon"] = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("hhtml5-history-api"), require("lodash"), require("jquery"));
+		exports["organon"] = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("html5-history-api"), require("lodash"), require("jquery"));
 	else
 		root["organon"] = factory(root["Bacon"]["$"], root["Bacon"], root["Bacon"], root["history"], root["_"], root["jQuery"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
