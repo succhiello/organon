@@ -43,8 +43,8 @@ module.exports = {
             },
             'html5-history-api': {
                 root: 'history',
-                commonjs: 'hhtml5-history-api',
-                commonjs2: 'hhtml5-history-api',
+                commonjs: 'html5-history-api',
+                commonjs2: 'html5-history-api',
                 amd: 'html5-history-api'
             }
         }
