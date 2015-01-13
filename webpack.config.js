@@ -53,8 +53,7 @@ module.exports = {
         new webpack.ProvidePlugin({
             _: 'lodash',
             $: 'jquery',
-            Bacon: 'bacon',
-            history: 'html5-history-api'
+            Bacon: 'bacon'
         })
     ]
 };

@@ -1,12 +1,12 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("html5-history-api"), require("lodash"), require("jquery"));
+		module.exports = factory(require("html5-history-api"), require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("lodash"), require("jquery"));
 	else if(typeof define === 'function' && define.amd)
-		define(["bacon.jquery", "bacon.matchers", "bacon", "html5-history-api", "lodash", "jquery"], factory);
+		define(["html5-history-api", "bacon.jquery", "bacon.matchers", "bacon", "lodash", "jquery"], factory);
 	else if(typeof exports === 'object')
-		exports["organon"] = factory(require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("html5-history-api"), require("lodash"), require("jquery"));
+		exports["organon"] = factory(require("html5-history-api"), require("bacon.jquery"), require("bacon.matchers"), require("bacon"), require("lodash"), require("jquery"));
 	else
-		root["organon"] = factory(root["Bacon"]["$"], root["Bacon"], root["Bacon"], root["history"], root["_"], root["jQuery"]);
+		root["organon"] = factory(root["history"], root["Bacon"]["$"], root["Bacon"], root["Bacon"], root["_"], root["jQuery"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -54,10 +54,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Bacon, history, _, $) {'use strict';
+	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
 	__webpack_require__(1);
 	__webpack_require__(2);
+	__webpack_require__(3);
 
 	var Router = __webpack_require__(7),
 	    _app = null,
@@ -102,7 +103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    this.currentPath = function currentPath() {
 
-	        var location = history.location || document.location;
+	        var location = window.history.location || window.location;
 	        return location.hash.length > 0 ?
 	               location.hash.slice(1) :
 	               location.pathname + location.search;
@@ -155,7 +156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	});
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
 /* 1 */
@@ -283,7 +284,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        _.each(m.slice(1), function(value, i) {
-	            params[route.keys[i].name] = decodeURIComponent(value);
+	            if (!route.keys[i].optional || value) {
+	                params[route.keys[i].name] = decodeURIComponent(value);
+	            }
 	        });
 
 	        name = route.name;
@@ -296,7 +299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Router;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5)))
 
 /***/ },
 /* 8 */
@@ -364,7 +367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Events;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5)))
 
 /***/ },
 /* 10 */
@@ -415,7 +418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Presenter;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
 /* 12 */
@@ -535,7 +538,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Repository;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
 /* 13 */
@@ -665,7 +668,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Storage;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
 /* 17 */
@@ -789,7 +792,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = View;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5), __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
 /* 18 */
