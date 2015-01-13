@@ -1,5 +1,6 @@
 'use strict';
 
+require('html5-history-api');
 require('bacon.jquery');
 require('bacon.matchers');
 
@@ -46,7 +47,7 @@ function _App(config) {
 
     this.currentPath = function currentPath() {
 
-        var location = history.location || document.location;
+        var location = window.history.location || window.location;
         return location.hash.length > 0 ?
                location.hash.slice(1) :
                location.pathname + location.search;
