@@ -84,7 +84,9 @@ function parse(properties, routes, path) {
         }
 
         _.each(m.slice(1), function(value, i) {
-            params[route.keys[i].name] = decodeURIComponent(value);
+            if (!route.keys[i].optional || value) {
+                params[route.keys[i].name] = decodeURIComponent(value);
+            }
         });
 
         name = route.name;
