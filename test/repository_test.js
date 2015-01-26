@@ -1,5 +1,3 @@
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
-
 describe('organon.repository.Repository', function() {
 
     var define = require('../src/util').define,
@@ -79,23 +77,15 @@ describe('organon.repository.Repository', function() {
     });
 
     it('should find instance', function(done) {
-
-        repository.sink.find.onValue(function(result) {
-            expect(result).toEqual(data[0]);
-            done();
-        });
-
+        repository.sink.find.map(expect).doAction('.toEqual', data[0]).assign(done);
         repository.find({id: 0});
     });
 
     it('should add instance', function(done) {
-
-        repository.sink.add.onValue(function(result) {
-            expect(result.name).toBe('Charlie');
-            expect(result.age).toBe(36);
-            done();
-        });
-
+        repository.sink.add.doAction(function(v) {
+            expect(v.name).toBe('Charlie');
+            expect(v.age).toBe(36);
+        }).assign(done);
         repository.add({name: 'Charlie', age: 36});
     });
 
@@ -113,12 +103,7 @@ describe('organon.repository.Repository', function() {
     });
 
     it('should interpolate path includes colon with params, and eliminate used keys and values', function(done) {
-
-        repository.sink.get.onValue(function(result) {
-            expect(result).toEqual(data[0]);
-            done();
-        });
-
+        repository.sink.get.map(expect).doAction('.toEqual', data[0]).assign(done);
         repository.get({id: 0});
     });
 });
