@@ -1,5 +1,3 @@
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
-
 describe('organon.presenter.Presenter', function() {
 
     var presenter, server,
@@ -36,39 +34,22 @@ describe('organon.presenter.Presenter', function() {
         });
     });
 
-    it('should be update viewModel whenever bus is pushed', function() {
-
-        var lengthIsToBeChanged = false;
-
-        presenter.viewModel.onValue(function(vm) {
-
-            if (lengthIsToBeChanged) {
-                expect(vm.items.length).toBe(1);
-            } else {
-                expect(vm.items.length).toBe(0);
-            }
-        });
-
+    it('should be update viewModel whenever bus is pushed', function(done) {
+        presenter.viewModel.map('.items.length').map(expect).doAction('.toBe', 0).assign(done);
         presenter.bus.setCurrentItemId.push(0);
-        lengthIsToBeChanged = true;
-        presenter.bus.addItem.push({name: 'Alice', age: 12});
     });
 
-    it('should fire "viewModelChanges" stream only when viewModel changes', function() {
+    it('should fire "viewModelChanges" stream only when viewModel changes', function(done) {
 
-        presenter.viewModelChanges().onValue(function(vm) {
-            expect(vm.items.length).toBe(1);
-        });
+        presenter.viewModelChanges().map('.items.length').map(expect).doAction('.toBe', 1).assign(done);
 
         presenter.bus.nop.push();  // stream not will be fired
         presenter.bus.addItem.push({name: 'Alice', age: 12});  // stream will be fired
     });
 
-    it('should fire mapped "viewModelChanges" stream only when mapped property changes', function() {
+    it('should fire mapped "viewModelChanges" stream only when mapped property changes', function(done) {
 
-        presenter.viewModelChanges('.currentItemId').onValue(function(id) {
-            expect(id).toBe(0);
-        });
+        presenter.viewModelChanges('.currentItemId').map(expect).doAction('.toBe', 0).assign(done);
 
         presenter.bus.nop.push();  // stream not will be fired
         presenter.bus.addItem.push({name: 'Alice', age: 12});  // stream will not be fired

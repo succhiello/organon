@@ -20,17 +20,4 @@ describe('organon.util', function() {
             expect(obj).toEqual({a: 0, b: 1, c: 2});
         });
     });
-
-    describe('pathToRegexp', function() {
-        it('should make RegExp from path string', function() {
-            var r = util.pathToRegexp('/foo/bar', []);
-            expect(r.test('/foo/bar')).toBeTruthy();
-            expect(r.test('/foo/baz')).toBeFalsy()
-        });
-        it('should get keys from path string', function() {
-            var keys = [];
-            util.pathToRegexp('/foo/:bar', keys);
-            expect(keys).toEqual([{name: 'bar', optional: false}]);
-        });
-    });
 });

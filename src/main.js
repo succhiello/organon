@@ -5,6 +5,7 @@ require('bacon.jquery');
 require('bacon.matchers');
 
 var Router = require('./router'),
+    AppData = require('./appData'),
     _app = null,
     _appEvent = new Bacon.Bus(),
     onReady = null,
@@ -28,6 +29,7 @@ onReady = module.exports.onReady = function onReady(f) {
 };
 
 module.exports.Router = Router;
+module.exports.AppData = AppData;
 module.exports.util = require('./util');
 module.exports.events = { Events: require('./events') };
 module.exports.entity = { Entity: require('./entity') };
@@ -59,10 +61,12 @@ function _App(config) {
         link: 'a',
         defaultView: '',
         routes: {},
-        initialPath: this.currentPath()
+        initialPath: this.currentPath(),
+        initialAppData: {}
     });
 
     this.router = new Router(this.config);
+    this.data = new AppData(this.config.initialAppData);
 
     this.debug = this.config.debug;
 
