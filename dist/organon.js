@@ -204,7 +204,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
 
-	var pathToRegexp = __webpack_require__(19),
+	var pathToRegexp = __webpack_require__(20),
 	    Router = function Router(properties) {
 
 	        var routes = {},
@@ -442,28 +442,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var Presenter = function Presenter(app, properties) {
 
-	        var self = this;
+	    var self = this;
 
-	        properties = _.defaults(properties || {}, {
-	            initialViewModel: this.initialViewModel || {},
-	            busDefs: this.busDefs || {},
-	            initialize: this.initialize || null
-	        });
+	    properties = _.defaults(properties || {}, {
+	        initialViewModel: this.initialViewModel || {},
+	        busDefs: this.busDefs || {},
+	        initialize: this.initialize || null
+	    });
 
-	        this.app = app;
-	        this.bus = {};
-	        this.viewModel = Bacon.update.apply(
-	            null,
-	            [properties.initialViewModel].concat(_(properties.busDefs).map(function(f, name) {
-	                self.bus[name] = new Bacon.Bus();
-	                return [[self.bus[name]], function(prev, value) { return f.call(self, _.clone(prev, true), value); }];
-	            }).flatten(true).value())
-	        );
+	    this.app = app;
+	    this.bus = {};
+	    this.viewModel = Bacon.update.apply(
+	        null,
+	        [properties.initialViewModel].concat(_(properties.busDefs).map(function(f, name) {
+	            self.bus[name] = new Bacon.Bus();
+	            return [[self.bus[name]], function(prev, value) { return f.call(self, _.clone(prev, true), value); }];
+	        }).flatten(true).value())
+	    );
 
-	        if (properties.initialize) {
-	            properties.initialize.call(this);
-	        }
-	    };
+	    if (properties.initialize) {
+	        properties.initialize.call(this);
+	    }
+	};
 
 	Presenter.prototype.viewModelChanges = function viewModelChanges(mapping) {
 	    return (mapping ? this.viewModel.map(mapping) : this.viewModel).skipDuplicates(_.isEqual).changes();
@@ -480,7 +480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
 	var util = __webpack_require__(9),
-	    pathToRegexp = __webpack_require__(19),
+	    pathToRegexp = __webpack_require__(20),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -730,8 +730,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
 	var inherit = __webpack_require__(9).inherit,
-	    Events = __webpack_require__(10),
-	    View = inherit(Events, function View(properties) {
+	    Events = __webpack_require__(10), // for back compatibility
+	    Publisher = __webpack_require__(19),
+	    View = inherit(Events, inherit(Publisher, function View(properties) {
 
 	        var self = this,
 	            ChildView = __webpack_require__(16),
@@ -761,9 +762,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        Events.call(self, properties);
 
-	        self.onPreRender$ = renderEvent$.filter(isState, PRE_RENDER).map('.data');
-	        self.onRender$ = renderEvent$.filter(isState, RENDER).map('.data');
-	        self.onPostRender$ = renderEvent$.filter(isState, POST_RENDER).map('.data');
+	        self.onPreRender$ = renderEvent$.filter(_isState, PRE_RENDER).map('.data');
+	        self.onRender$ = renderEvent$.filter(_isState, RENDER).map('.data');
+	        self.onPostRender$ = renderEvent$.filter(_isState, POST_RENDER).map('.data');
+
+	        self.el$ = self.onPreRender$.map($, properties.el, void 0).toProperty();
 
 	        self.render$.onValue(function(data) {
 
@@ -773,23 +776,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            self.renderTemplate(self._template, data);
 
-	            self.$ = _.mapValues(properties.widgets, function(widget) {
-	                if (_.isString(widget)) {
-	                    return self.$el.find(widget);
-	                } else if(_.isFunction(widget)) {
-	                    return widget.call(self, self.$el);
+	            self.$ = _.mapValues(properties.widgets, function($el) {
+	                if (_.isString($el)) {
+	                    return self.$el.find($el);
+	                } else if(_.isFunction($el)) {
+	                    return $el.call(self, self.$el);
 	                } else {
-	                    return widget;
+	                    return $el;
 	                }
 	            });
+
 	            self.resetEvent(self.$el);
 
 	            renderEvent$.push({state: RENDER, data: data});
-
 	            renderEvent$.push({state: POST_RENDER, data: data});
 	        });
 
-	        self.el$ = self.onPreRender$.map($, properties.el, void 0).toProperty();
+	        Publisher.call(self, properties, self.onRender$.map(self.el$), self.onPreRender$);
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
 	            if (_.isPlainObject(v)) {
@@ -802,7 +805,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (properties.initialize) {
 	            properties.initialize.call(self);
 	        }
-	    });
+	    }));
 
 	View.prototype.onPreRender = function onPreRender(f) {
 	    return this.onPreRender$.onValue(_.bind(f, this));
@@ -839,7 +842,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	function isState(state, renderEvent) {
+	function _isState(state, renderEvent) {
 	    return renderEvent.state === state;
 	}
 
@@ -851,7 +854,42 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArray = __webpack_require__(20);
+	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
+
+	module.exports = function Publisher(properties, refresher$, unsubscriber$) {
+
+	    var self = this;
+
+	    properties = _.defaults(properties || {}, {
+	        on: self.on || {}
+	    });
+
+	    if (!refresher$) {
+	        refresher$ = Bacon.once();
+	    }
+
+	    self.on$ = _.mapValues(properties.on, function(f, name) {
+
+	        var stream = refresher$.flatMap(function(arg) {
+	            var s = f.call(self, arg);
+	            return unsubscriber$ ? s.takeUntil(unsubscriber$) : s;
+	        });
+
+	        if (properties.debug) {
+	            stream.log('organon.Publisher[' + (properties.name ? properties.name : '') + '].on$.' + name);
+	        }
+
+	        return stream;
+	    });
+	};
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isArray = __webpack_require__(21);
 
 	/**
 	 * Expose `pathtoRegexp`.
@@ -1026,7 +1064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = Array.isArray || function (arr) {

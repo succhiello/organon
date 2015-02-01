@@ -1,8 +1,9 @@
 'use strict';
 
 var inherit = require('../util').inherit,
-    Events = require('../events'),
-    View = inherit(Events, function View(properties) {
+    Events = require('../events'), // for back compatibility
+    Publisher = require('../publisher'),
+    View = inherit(Events, inherit(Publisher, function View(properties) {
 
         var self = this,
             ChildView = require('./childView'),
@@ -32,9 +33,11 @@ var inherit = require('../util').inherit,
 
         Events.call(self, properties);
 
-        self.onPreRender$ = renderEvent$.filter(isState, PRE_RENDER).map('.data');
-        self.onRender$ = renderEvent$.filter(isState, RENDER).map('.data');
-        self.onPostRender$ = renderEvent$.filter(isState, POST_RENDER).map('.data');
+        self.onPreRender$ = renderEvent$.filter(_isState, PRE_RENDER).map('.data');
+        self.onRender$ = renderEvent$.filter(_isState, RENDER).map('.data');
+        self.onPostRender$ = renderEvent$.filter(_isState, POST_RENDER).map('.data');
+
+        self.el$ = self.onPreRender$.map($, properties.el, void 0).toProperty();
 
         self.render$.onValue(function(data) {
 
@@ -44,23 +47,23 @@ var inherit = require('../util').inherit,
 
             self.renderTemplate(self._template, data);
 
-            self.$ = _.mapValues(properties.widgets, function(widget) {
-                if (_.isString(widget)) {
-                    return self.$el.find(widget);
-                } else if(_.isFunction(widget)) {
-                    return widget.call(self, self.$el);
+            self.$ = _.mapValues(properties.widgets, function($el) {
+                if (_.isString($el)) {
+                    return self.$el.find($el);
+                } else if(_.isFunction($el)) {
+                    return $el.call(self, self.$el);
                 } else {
-                    return widget;
+                    return $el;
                 }
             });
+
             self.resetEvent(self.$el);
 
             renderEvent$.push({state: RENDER, data: data});
-
             renderEvent$.push({state: POST_RENDER, data: data});
         });
 
-        self.el$ = self.onPreRender$.map($, properties.el, void 0).toProperty();
+        Publisher.call(self, properties, self.onRender$.map(self.el$), self.onPreRender$);
 
         self.children = _.mapValues(properties.childDefs, function(v) {
             if (_.isPlainObject(v)) {
@@ -73,7 +76,7 @@ var inherit = require('../util').inherit,
         if (properties.initialize) {
             properties.initialize.call(self);
         }
-    });
+    }));
 
 View.prototype.onPreRender = function onPreRender(f) {
     return this.onPreRender$.onValue(_.bind(f, this));
@@ -110,7 +113,7 @@ View.prototype.showElement = function showElement($el, isShown) {
     }
 };
 
-function isState(state, renderEvent) {
+function _isState(state, renderEvent) {
     return renderEvent.state === state;
 }
 
