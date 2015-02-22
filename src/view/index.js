@@ -51,14 +51,6 @@ var inherit = require('../util').inherit,
 
             self.$ = _.mapValues(properties.widgets, function($el) {
                 return _getEl($el, self.$el);
-                /*
-                if (_.isString($el)) {
-                    return self.$el.find($el);
-                } else if(_.isFunction($el)) {
-                    return $el.call(self, self.$el);
-                } else {
-                    return $el;
-                }*/
             });
 
             self.resetEvent(self.$el);
@@ -84,7 +76,7 @@ var inherit = require('../util').inherit,
         });
 
         if (properties.initialize) {
-            properties.initialize.call(self);
+            properties.initialize.call(self, self.children, self.on$, self.ui$);
         }
     }));
 
