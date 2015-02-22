@@ -8,6 +8,7 @@ var inherit = require('../util').inherit,
         var self = this,
             ChildView = require('./childView'),
             renderEvent$ = new Bacon.Bus(),
+            renderedEl$ = null,
             PRE_RENDER = 0,
             RENDER = 1,
             POST_RENDER = 2;
@@ -16,6 +17,7 @@ var inherit = require('../util').inherit,
             debug: self.debug || false,
             childDefs: self.childDefs || {},
             widgets: self.widgets || {},
+            ui: self.ui || {},
             template: self.template || '',
             name: self.name || '',
             el: self.el || '',
@@ -48,13 +50,15 @@ var inherit = require('../util').inherit,
             self.renderTemplate(self._template, data);
 
             self.$ = _.mapValues(properties.widgets, function($el) {
+                return _getEl($el, self.$el);
+                /*
                 if (_.isString($el)) {
                     return self.$el.find($el);
                 } else if(_.isFunction($el)) {
                     return $el.call(self, self.$el);
                 } else {
                     return $el;
-                }
+                }*/
             });
 
             self.resetEvent(self.$el);
@@ -63,7 +67,13 @@ var inherit = require('../util').inherit,
             renderEvent$.push({state: POST_RENDER, data: data});
         });
 
-        Publisher.call(self, properties, self.onRender$.map(self.el$), self.onPreRender$);
+        renderedEl$ = self.onRender$.map(self.el$);
+
+        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
+
+        self.ui$ = _.mapValues(properties.ui, function(el) {
+            return renderedEl$.map(_getEl, el).toProperty();
+        });
 
         self.children = _.mapValues(properties.childDefs, function(v) {
             if (_.isPlainObject(v)) {
@@ -115,6 +125,16 @@ View.prototype.showElement = function showElement($el, isShown) {
 
 function _isState(state, renderEvent) {
     return renderEvent.state === state;
+}
+
+function _getEl($el, root) {
+    if (_.isString($el)) {
+        return root.find($el);
+    } else if(_.isFunction($el)) {
+        return $el.call(self, root);
+    } else {
+        return $el;
+    }
 }
 
 module.exports = View;
