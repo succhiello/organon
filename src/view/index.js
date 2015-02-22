@@ -89,15 +89,15 @@ var inherit = require('../util').inherit,
     }));
 
 View.prototype.onPreRender = function onPreRender(f) {
-    return this.onPreRender$.onValue(_.bind(f, this));
+    return this.onPreRender$.onValue(f.bind(this));
 };
 
 View.prototype.onRender = function onRender(f) {
-    return this.onRender$.onValue(_.bind(f, this));
+    return this.onRender$.onValue(f.bind(this));
 };
 
 View.prototype.onPostRender = function onPostRender(f) {
-    return this.onPostRender$.onValue(_.bind(f, this));
+    return this.onPostRender$.onValue(f.bind(this));
 };
 
 View.prototype.renderHTML = function renderHTML(html) {
