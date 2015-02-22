@@ -9,7 +9,7 @@ module.exports = function Publisher(properties, refresher$, unsubscriber$) {
     });
 
     if (!refresher$) {
-        refresher$ = Bacon.once();
+        refresher$ = Bacon.constant();
     }
 
     self.on$ = _.mapValues(properties.on, function(f, name) {
