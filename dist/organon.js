@@ -783,7 +783,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            self.renderTemplate(self._template, data);
 
 	            self.$ = _.mapValues(properties.widgets, function($el) {
-	                return _getEl($el, self.$el);
+	                return _getEl.call(self, $el, self.$el);
 	            });
 
 	            self.resetEvent(self.$el);
@@ -797,7 +797,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
-	            return renderedEl$.map(_getEl, el).toProperty();
+	            return renderedEl$.map(_getEl.bind(self), el).toProperty();
 	        });
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
@@ -856,7 +856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (_.isString($el)) {
 	        return root.find($el);
 	    } else if(_.isFunction($el)) {
-	        return $el.call(self, root);
+	        return $el.call(this, root);
 	    } else {
 	        return $el;
 	    }
