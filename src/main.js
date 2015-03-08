@@ -82,6 +82,20 @@ function _App(config) {
         this.router.dispatch(path || this.currentPath());
     };
 
+    this.registerView = function(name, viewClass, presenterClass) {
+
+        var self = this;
+
+        this.router.onRoute(name).take(1).doAction(function(route) {
+            var view = new viewClass(self),
+                presenter = presenterClass ? new presenterClass(self) : null;
+            if (presenter) {
+                view.listenTo('presenter', presenter);
+                presenter.listenTo('view', view);
+            }
+        }).map('.path').assign(this, 'dispatch'); // re-routing
+    };
+
     _appEvent.push({state: INITIALIZE, params: this});
     _appEvent.push({state: READY, params: this});
 

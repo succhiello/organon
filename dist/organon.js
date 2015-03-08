@@ -138,6 +138,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.router.dispatch(path || this.currentPath());
 	    };
 
+	    this.registerView = function(name, viewClass, presenterClass) {
+
+	        var self = this;
+
+	        this.router.onRoute(name).take(1).doAction(function(route) {
+	            var view = new viewClass(self),
+	                presenter = presenterClass ? new presenterClass(self) : null;
+	            if (presenter) {
+	                view.listenTo('presenter', presenter);
+	                presenter.listenTo('view', view);
+	            }
+	        }).map('.path').assign(this, 'dispatch'); // re-routing
+	    };
+
 	    _appEvent.push({state: INITIALIZE, params: this});
 	    _appEvent.push({state: READY, params: this});
 
@@ -204,7 +218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
 
-	var pathToRegexp = __webpack_require__(20),
+	var pathToRegexp = __webpack_require__(21),
 	    Router = function Router(properties) {
 
 	        var routes = {},
@@ -298,7 +312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	    });
 
-	    return name ? { name: name, params: params } : null;
+	    return name ? { name: name, params: params, path: path } : null;
 	}
 
 	module.exports = Router;
@@ -442,7 +456,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var inherit = __webpack_require__(9).inherit,
 	    Publisher = __webpack_require__(19),
-	    Presenter = inherit(Publisher, function Presenter(app, properties) {
+	    Subscriber = __webpack_require__(20),
+	    Presenter = inherit(Publisher, inherit(Subscriber, function Presenter(app, properties) {
 
 	        var self = this;
 
@@ -463,11 +478,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        );
 
 	        Publisher.call(this, properties);
+	        Subscriber.call(this, properties);
 
 	        if (properties.initialize) {
 	            properties.initialize.call(this);
 	        }
-	    });
+	    }));
 
 	Presenter.prototype.viewModelChanges = function viewModelChanges(mapping) {
 	    return (mapping ? this.viewModel.map(mapping) : this.viewModel).skipDuplicates(_.isEqual).changes();
@@ -484,7 +500,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
 	var util = __webpack_require__(9),
-	    pathToRegexp = __webpack_require__(20),
+	    pathToRegexp = __webpack_require__(21),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -655,6 +671,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
 	        View.call(this, properties);
+
+	        this.on$.load = this.onLoad$;
+	        this.on$.leave = this.onLeave$;
 	    });
 
 	AppView.prototype.onLoad = function onLoad(f) {
@@ -680,6 +699,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        properties = _.defaults(properties || {}, {
 	            renderWithParent: this.renderWithParent || true,
 	            parentParamsMapper: this.parentParamsMapper || null,
+	            enableEventBubbling: this.enableEventBubbling || true,
 	            presenter: this.presenter || parent.presenter
 	        });
 
@@ -694,6 +714,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        View.call(this, properties);
+
+	        if (properties.enableEventBubbling) {
+	            _.forEach(this.on$, function(event, name) {
+	                if (_.isUndefined(parent.on$[name])) {
+	                    parent.on$[name] = event;
+	                }
+	            });
+	        }
 	    });
 
 	module.exports = ChildView;
@@ -736,7 +764,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var inherit = __webpack_require__(9).inherit,
 	    Events = __webpack_require__(10), // for back compatibility
 	    Publisher = __webpack_require__(19),
-	    View = inherit(Events, inherit(Publisher, function View(properties) {
+	    Subscriber = __webpack_require__(20),
+	    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
 
 	        var self = this,
 	            ChildView = __webpack_require__(16),
@@ -783,7 +812,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            self.renderTemplate(self._template, data);
 
 	            self.$ = _.mapValues(properties.widgets, function($el) {
-	                return _getEl($el, self.$el);
+	                return _getEl.call(self, $el, self.$el);
 	            });
 
 	            self.resetEvent(self.$el);
@@ -796,8 +825,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
+	        self.on$.preRender = self.onPreRender$;
+	        self.on$.render = self.onRender$;
+	        self.on$.postRender = self.onPostRender$;
+
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
-	            return renderedEl$.map(_getEl, el).toProperty();
+	            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
+	            widget.assign(_.noop); // bad workaround...
+	            return widget;
 	        });
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
@@ -808,10 +843,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        });
 
+	        Subscriber.call(self, properties);
+
 	        if (properties.initialize) {
 	            properties.initialize.call(self, self.children, self.on$, self.ui$);
 	        }
-	    }));
+	    })));
 
 	View.prototype.onPreRender = function onPreRender(f) {
 	    return this.onPreRender$.onValue(f.bind(this));
@@ -856,7 +893,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (_.isString($el)) {
 	        return root.find($el);
 	    } else if(_.isFunction($el)) {
-	        return $el.call(self, root);
+	        return $el.call(this, root);
 	    } else {
 	        return $el;
 	    }
@@ -905,7 +942,31 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArray = __webpack_require__(21);
+	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
+
+	module.exports = function Subscriber(properties) {
+
+	    properties = _.defaults(properties || {}, {
+	        subscription: this.subscription || {}
+	    });
+
+	    this.listenTo = function(name, publisher) {
+	        var subscription = properties.subscription[name];
+	        if (_.isFunction(subscription)) {
+	            subscription.call(this, publisher.on$);
+	        } else {
+	            console.error('invalid subscription "' + name + '".');
+	        }
+	    };
+	};
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isArray = __webpack_require__(22);
 
 	/**
 	 * Expose `pathtoRegexp`.
@@ -1080,7 +1141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = Array.isArray || function (arr) {

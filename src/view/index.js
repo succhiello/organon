@@ -3,7 +3,8 @@
 var inherit = require('../util').inherit,
     Events = require('../events'), // for back compatibility
     Publisher = require('../publisher'),
-    View = inherit(Events, inherit(Publisher, function View(properties) {
+    Subscriber = require('../subscriber'),
+    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
 
         var self = this,
             ChildView = require('./childView'),
@@ -50,7 +51,7 @@ var inherit = require('../util').inherit,
             self.renderTemplate(self._template, data);
 
             self.$ = _.mapValues(properties.widgets, function($el) {
-                return _getEl($el, self.$el);
+                return _getEl.call(self, $el, self.$el);
             });
 
             self.resetEvent(self.$el);
@@ -63,8 +64,14 @@ var inherit = require('../util').inherit,
 
         Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
+        self.on$.preRender = self.onPreRender$;
+        self.on$.render = self.onRender$;
+        self.on$.postRender = self.onPostRender$;
+
         self.ui$ = _.mapValues(properties.ui, function(el) {
-            return renderedEl$.map(_getEl, el).toProperty();
+            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
+            widget.assign(_.noop); // bad workaround...
+            return widget;
         });
 
         self.children = _.mapValues(properties.childDefs, function(v) {
@@ -75,10 +82,12 @@ var inherit = require('../util').inherit,
             }
         });
 
+        Subscriber.call(self, properties);
+
         if (properties.initialize) {
             properties.initialize.call(self, self.children, self.on$, self.ui$);
         }
-    }));
+    })));
 
 View.prototype.onPreRender = function onPreRender(f) {
     return this.onPreRender$.onValue(f.bind(this));
@@ -123,7 +132,7 @@ function _getEl($el, root) {
     if (_.isString($el)) {
         return root.find($el);
     } else if(_.isFunction($el)) {
-        return $el.call(self, root);
+        return $el.call(this, root);
     } else {
         return $el;
     }

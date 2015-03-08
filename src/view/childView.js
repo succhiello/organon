@@ -5,6 +5,7 @@ var View = require('../view'),
         properties = _.defaults(properties || {}, {
             renderWithParent: this.renderWithParent || true,
             parentParamsMapper: this.parentParamsMapper || null,
+            enableEventBubbling: this.enableEventBubbling || true,
             presenter: this.presenter || parent.presenter
         });
 
@@ -19,6 +20,14 @@ var View = require('../view'),
         }
 
         View.call(this, properties);
+
+        if (properties.enableEventBubbling) {
+            _.forEach(this.on$, function(event, name) {
+                if (_.isUndefined(parent.on$[name])) {
+                    parent.on$[name] = event;
+                }
+            });
+        }
     });
 
 module.exports = ChildView;

@@ -2,7 +2,8 @@
 
 var inherit = require('./util').inherit,
     Publisher = require('./publisher'),
-    Presenter = inherit(Publisher, function Presenter(app, properties) {
+    Subscriber = require('./subscriber'),
+    Presenter = inherit(Publisher, inherit(Subscriber, function Presenter(app, properties) {
 
         var self = this;
 
@@ -23,11 +24,12 @@ var inherit = require('./util').inherit,
         );
 
         Publisher.call(this, properties);
+        Subscriber.call(this, properties);
 
         if (properties.initialize) {
             properties.initialize.call(this);
         }
-    });
+    }));
 
 Presenter.prototype.viewModelChanges = function viewModelChanges(mapping) {
     return (mapping ? this.viewModel.map(mapping) : this.viewModel).skipDuplicates(_.isEqual).changes();
