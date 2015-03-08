@@ -93,11 +93,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.repository = { Repository: __webpack_require__(13) };
 	module.exports.storage = {
 	    Storage: __webpack_require__(17),
-	    RESTApiStorage: __webpack_require__(14)
+	    RESTApiStorage: __webpack_require__(16)
 	};
 	module.exports.view = {
 	    View: __webpack_require__(18),
-	    AppView: __webpack_require__(16),
+	    AppView: __webpack_require__(14),
 	    ChildView: __webpack_require__(15)
 	};
 
@@ -617,41 +617,36 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	var Storage = __webpack_require__(17),
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
 	    inherit = __webpack_require__(9).inherit,
-	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
+	    AppView = inherit(View, function AppView(app, properties) {
 
-	        Storage.call(this, properties);
+	        this.app = app;
 
-	        this.pathPrefix = this.pathPrefix || '';
-	        this.deleteMethod = this.deleteMethod || 'delete';
+	        properties = _.defaults(properties || {}, {
+	            name: this.name || ''
+	        });
+
+	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
+	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
+
+	        View.call(this, properties);
+
+	        this.on$.load = this.onLoad$;
+	        this.on$.leave = this.onLeave$;
 	    });
 
-	function _makeAjaxParams(type, pathPrefix, params) {
-	    return {
-	        type: type,
-	        url: pathPrefix + params.path,
-	        data: type === 'get' ? params.data : JSON.stringify(params.data),
-	        contentType: type === 'get' ? 'application/x-www-form-urlencoded' : 'application/json'
-	    };
+	AppView.prototype.onLoad = function onLoad(f) {
+	    return this.onLoad$.onValue(_.bind(f, this));
 	}
 
-	RESTApiStorage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, 'post', this.pathPrefix).ajax();
-	};
+	AppView.prototype.onLeave = function onLeave(f) {
+	    return this.onLeave$.onValue(_.bind(f, this));
+	}
 
-	RESTApiStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
-	};
-
-	RESTApiStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, this.deleteMethod, this.pathPrefix).ajax();
-	};
-
-	module.exports = RESTApiStorage;
-
+	module.exports = AppView;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
 /* 15 */
@@ -697,36 +692,41 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
+	'use strict';
+
+	var Storage = __webpack_require__(17),
 	    inherit = __webpack_require__(9).inherit,
-	    AppView = inherit(View, function AppView(app, properties) {
+	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
-	        this.app = app;
+	        Storage.call(this, properties);
 
-	        properties = _.defaults(properties || {}, {
-	            name: this.name || ''
-	        });
-
-	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
-	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
-
-	        View.call(this, properties);
-
-	        this.on$.load = this.onLoad$;
-	        this.on$.leave = this.onLeave$;
+	        this.pathPrefix = this.pathPrefix || '';
+	        this.deleteMethod = this.deleteMethod || 'delete';
 	    });
 
-	AppView.prototype.onLoad = function onLoad(f) {
-	    return this.onLoad$.onValue(_.bind(f, this));
+	function _makeAjaxParams(type, pathPrefix, params) {
+	    return {
+	        type: type,
+	        url: pathPrefix + params.path,
+	        data: type === 'get' ? params.data : JSON.stringify(params.data),
+	        contentType: type === 'get' ? 'application/x-www-form-urlencoded' : 'application/json'
+	    };
 	}
 
-	AppView.prototype.onLeave = function onLeave(f) {
-	    return this.onLeave$.onValue(_.bind(f, this));
-	}
+	RESTApiStorage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, 'post', this.pathPrefix).ajax();
+	};
 
-	module.exports = AppView;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+	RESTApiStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
+	};
+
+	RESTApiStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, this.deleteMethod, this.pathPrefix).ajax();
+	};
+
+	module.exports = RESTApiStorage;
+
 
 /***/ },
 /* 17 */
@@ -771,6 +771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ChildView = __webpack_require__(15),
 	            renderEvent$ = new Bacon.Bus(),
 	            renderedEl$ = null,
+	            listenToFunc = null,
 	            PRE_RENDER = 0,
 	            RENDER = 1,
 	            POST_RENDER = 2;
@@ -844,6 +845,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 
 	        Subscriber.call(self, properties);
+	        listenToFunc = this.listenTo;
+	        this.listenTo = function(name, publisher) {
+	            listenToFunc(name, publisher);
+	            _.forEach(self.children, function(child) {
+	                child.listenTo(name, publisher);
+	            });
+	        };
 
 	        if (properties.initialize) {
 	            properties.initialize.call(self, self.children, self.on$, self.ui$);
@@ -946,16 +954,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = function Subscriber(properties) {
 
+	    var self = this;
+
 	    properties = _.defaults(properties || {}, {
-	        subscription: this.subscription || {}
+	        subscription: self.subscription || {}
 	    });
 
 	    this.listenTo = function(name, publisher) {
 	        var subscription = properties.subscription[name];
 	        if (_.isFunction(subscription)) {
-	            subscription.call(this, publisher.on$);
-	        } else {
-	            console.error('invalid subscription "' + name + '".');
+	            subscription.call(self, publisher.on$);
 	        }
 	    };
 	};

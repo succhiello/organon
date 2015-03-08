@@ -10,6 +10,7 @@ var inherit = require('../util').inherit,
             ChildView = require('./childView'),
             renderEvent$ = new Bacon.Bus(),
             renderedEl$ = null,
+            listenToFunc = null,
             PRE_RENDER = 0,
             RENDER = 1,
             POST_RENDER = 2;
@@ -83,6 +84,13 @@ var inherit = require('../util').inherit,
         });
 
         Subscriber.call(self, properties);
+        listenToFunc = this.listenTo;
+        this.listenTo = function(name, publisher) {
+            listenToFunc(name, publisher);
+            _.forEach(self.children, function(child) {
+                child.listenTo(name, publisher);
+            });
+        };
 
         if (properties.initialize) {
             properties.initialize.call(self, self.children, self.on$, self.ui$);
