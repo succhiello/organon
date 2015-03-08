@@ -64,7 +64,9 @@ var inherit = require('../util').inherit,
         Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
         self.ui$ = _.mapValues(properties.ui, function(el) {
-            return renderedEl$.map(_getEl.bind(self), el).toProperty();
+            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
+            widget.assign(_.noop); // bad workaround...
+            return widget;
         });
 
         self.children = _.mapValues(properties.childDefs, function(v) {

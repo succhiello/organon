@@ -680,6 +680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        properties = _.defaults(properties || {}, {
 	            renderWithParent: this.renderWithParent || true,
 	            parentParamsMapper: this.parentParamsMapper || null,
+	            enableEventBubbling: this.enableEventBubbling || true,
 	            presenter: this.presenter || parent.presenter
 	        });
 
@@ -694,6 +695,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        View.call(this, properties);
+
+	        if (properties.enableEventBubbling) {
+	            _.forEach(this.on$, function(event, name) {
+	                if (_.isUndefined(parent.on$[name])) {
+	                    parent.on$[name] = event;
+	                }
+	            });
+	        }
 	    });
 
 	module.exports = ChildView;
@@ -797,7 +806,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
-	            return renderedEl$.map(_getEl.bind(self), el).toProperty();
+	            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
+	            widget.assign(_.noop); // bad workaround...
+	            return widget;
 	        });
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
