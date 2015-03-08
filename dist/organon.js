@@ -138,6 +138,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.router.dispatch(path || this.currentPath());
 	    };
 
+	    this.registerView = function(name, viewClass, presenterClass) {
+
+	        var self = this;
+
+	        this.router.onRoute(name).take(1).doAction(function(route) {
+	            var view = new viewClass(self),
+	                presenter = presenterClass ? new presenterClass(self) : null;
+	            if (presenter) {
+	                view.listenTo('presenter', presenter);
+	                presenter.listenTo('view', view);
+	            }
+	        }).map('.path').assign(this, 'dispatch'); // re-routing
+	    };
+
 	    _appEvent.push({state: INITIALIZE, params: this});
 	    _appEvent.push({state: READY, params: this});
 
@@ -298,7 +312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	    });
 
-	    return name ? { name: name, params: params } : null;
+	    return name ? { name: name, params: params, path: path } : null;
 	}
 
 	module.exports = Router;
@@ -938,10 +952,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    this.listenTo = function(name, publisher) {
 	        var subscription = properties.subscription[name];
-	        if (_.isUndefined(subscription)) {
-	            throw new Error('subscription "' + name + '" not found.');
+	        if (_.isFunction(subscription)) {
+	            subscription.call(this, publisher.on$);
+	        } else {
+	            console.error('invalid subscription "' + name + '".');
 	        }
-	        return subscription.call(this, publisher.on$);
 	    };
 	};
 	

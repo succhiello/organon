@@ -94,7 +94,7 @@ function parse(properties, routes, path) {
         return true;
     });
 
-    return name ? { name: name, params: params } : null;
+    return name ? { name: name, params: params, path: path } : null;
 }
 
 module.exports = Router;

@@ -8,9 +8,10 @@ module.exports = function Subscriber(properties) {
 
     this.listenTo = function(name, publisher) {
         var subscription = properties.subscription[name];
-        if (_.isUndefined(subscription)) {
-            throw new Error('subscription "' + name + '" not found.');
+        if (_.isFunction(subscription)) {
+            subscription.call(this, publisher.on$);
+        } else {
+            console.error('invalid subscription "' + name + '".');
         }
-        return subscription.call(this, publisher.on$);
     };
 };
