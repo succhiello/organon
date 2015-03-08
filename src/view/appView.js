@@ -12,6 +12,9 @@ var View = require('../view'),
         this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
         View.call(this, properties);
+
+        this.on$.load = this.onLoad$;
+        this.on$.leave = this.onLeave$;
     });
 
 AppView.prototype.onLoad = function onLoad(f) {

@@ -3,7 +3,8 @@
 var inherit = require('../util').inherit,
     Events = require('../events'), // for back compatibility
     Publisher = require('../publisher'),
-    View = inherit(Events, inherit(Publisher, function View(properties) {
+    Subscriber = require('../subscriber'),
+    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
 
         var self = this,
             ChildView = require('./childView'),
@@ -63,6 +64,10 @@ var inherit = require('../util').inherit,
 
         Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
+        self.on$.preRender = self.onPreRender$;
+        self.on$.render = self.onRender$;
+        self.on$.postRender = self.onPostRender$;
+
         self.ui$ = _.mapValues(properties.ui, function(el) {
             var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
             widget.assign(_.noop); // bad workaround...
@@ -77,10 +82,12 @@ var inherit = require('../util').inherit,
             }
         });
 
+        Subscriber.call(self, properties);
+
         if (properties.initialize) {
             properties.initialize.call(self, self.children, self.on$, self.ui$);
         }
-    }));
+    })));
 
 View.prototype.onPreRender = function onPreRender(f) {
     return this.onPreRender$.onValue(f.bind(this));
