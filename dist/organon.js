@@ -97,8 +97,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	module.exports.view = {
 	    View: __webpack_require__(18),
-	    AppView: __webpack_require__(15),
-	    ChildView: __webpack_require__(16)
+	    AppView: __webpack_require__(16),
+	    ChildView: __webpack_require__(15)
 	};
 
 	function _App(config) {
@@ -477,11 +477,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }).flatten(true).value())
 	        );
 
-	        Publisher.call(this, properties);
+	        Publisher.call(this, properties, Bacon.constant(app.data));
 	        Subscriber.call(this, properties);
 
 	        if (properties.initialize) {
-	            properties.initialize.call(this);
+	            properties.initialize.call(this, app.data);
 	        }
 	    }));
 
@@ -659,41 +659,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
 	    inherit = __webpack_require__(9).inherit,
-	    AppView = inherit(View, function AppView(app, properties) {
-
-	        this.app = app;
-
-	        properties = _.defaults(properties || {}, {
-	            name: this.name || ''
-	        });
-
-	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
-	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
-
-	        View.call(this, properties);
-
-	        this.on$.load = this.onLoad$;
-	        this.on$.leave = this.onLeave$;
-	    });
-
-	AppView.prototype.onLoad = function onLoad(f) {
-	    return this.onLoad$.onValue(_.bind(f, this));
-	}
-
-	AppView.prototype.onLeave = function onLeave(f) {
-	    return this.onLeave$.onValue(_.bind(f, this));
-	}
-
-	module.exports = AppView;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
-	    inherit = __webpack_require__(9).inherit,
 	    ChildView = inherit(View, function ChildView(parent, properties) {
 
 	        properties = _.defaults(properties || {}, {
@@ -725,6 +690,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 
 	module.exports = ChildView;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
+	    inherit = __webpack_require__(9).inherit,
+	    AppView = inherit(View, function AppView(app, properties) {
+
+	        this.app = app;
+
+	        properties = _.defaults(properties || {}, {
+	            name: this.name || ''
+	        });
+
+	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
+	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
+
+	        View.call(this, properties);
+
+	        this.on$.load = this.onLoad$;
+	        this.on$.leave = this.onLeave$;
+	    });
+
+	AppView.prototype.onLoad = function onLoad(f) {
+	    return this.onLoad$.onValue(_.bind(f, this));
+	}
+
+	AppView.prototype.onLeave = function onLeave(f) {
+	    return this.onLeave$.onValue(_.bind(f, this));
+	}
+
+	module.exports = AppView;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
@@ -768,7 +768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(16),
+	            ChildView = __webpack_require__(15),
 	            renderEvent$ = new Bacon.Bus(),
 	            renderedEl$ = null,
 	            PRE_RENDER = 0,
