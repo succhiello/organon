@@ -23,11 +23,11 @@ var inherit = require('./util').inherit,
             }).flatten(true).value())
         );
 
-        Publisher.call(this, properties);
+        Publisher.call(this, properties, Bacon.constant(app.data));
         Subscriber.call(this, properties);
 
         if (properties.initialize) {
-            properties.initialize.call(this);
+            properties.initialize.call(this, app.data);
         }
     }));
 

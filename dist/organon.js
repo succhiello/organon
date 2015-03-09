@@ -477,11 +477,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }).flatten(true).value())
 	        );
 
-	        Publisher.call(this, properties);
+	        Publisher.call(this, properties, Bacon.constant(app.data));
 	        Subscriber.call(this, properties);
 
 	        if (properties.initialize) {
-	            properties.initialize.call(this);
+	            properties.initialize.call(this, app.data);
 	        }
 	    }));
 
@@ -771,6 +771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ChildView = __webpack_require__(16),
 	            renderEvent$ = new Bacon.Bus(),
 	            renderedEl$ = null,
+	            listenToFunc = null,
 	            PRE_RENDER = 0,
 	            RENDER = 1,
 	            POST_RENDER = 2;
@@ -844,6 +845,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 
 	        Subscriber.call(self, properties);
+	        listenToFunc = this.listenTo;
+	        this.listenTo = function(name, publisher) {
+	            listenToFunc(name, publisher);
+	            _.forEach(self.children, function(child) {
+	                child.listenTo(name, publisher);
+	            });
+	        };
 
 	        if (properties.initialize) {
 	            properties.initialize.call(self, self.children, self.on$, self.ui$);
@@ -946,16 +954,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = function Subscriber(properties) {
 
+	    var self = this;
+
 	    properties = _.defaults(properties || {}, {
-	        subscription: this.subscription || {}
+	        subscription: self.subscription || {}
 	    });
 
 	    this.listenTo = function(name, publisher) {
 	        var subscription = properties.subscription[name];
 	        if (_.isFunction(subscription)) {
-	            subscription.call(this, publisher.on$);
-	        } else {
-	            console.error('invalid subscription "' + name + '".');
+	            subscription.call(self, publisher.on$);
 	        }
 	    };
 	};

@@ -2,16 +2,16 @@
 
 module.exports = function Subscriber(properties) {
 
+    var self = this;
+
     properties = _.defaults(properties || {}, {
-        subscription: this.subscription || {}
+        subscription: self.subscription || {}
     });
 
     this.listenTo = function(name, publisher) {
         var subscription = properties.subscription[name];
         if (_.isFunction(subscription)) {
-            subscription.call(this, publisher.on$);
-        } else {
-            console.error('invalid subscription "' + name + '".');
+            subscription.call(self, publisher.on$);
         }
     };
 };
