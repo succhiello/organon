@@ -1,6 +1,6 @@
 {
   "name": "organon",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "MVW application framework implemented with Bacon.js",
   "dependencies": {},
   "devDependencies": {
