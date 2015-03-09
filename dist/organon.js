@@ -93,12 +93,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.repository = { Repository: __webpack_require__(13) };
 	module.exports.storage = {
 	    Storage: __webpack_require__(17),
-	    RESTApiStorage: __webpack_require__(16)
+	    RESTApiStorage: __webpack_require__(14)
 	};
 	module.exports.view = {
 	    View: __webpack_require__(18),
-	    AppView: __webpack_require__(14),
-	    ChildView: __webpack_require__(15)
+	    AppView: __webpack_require__(15),
+	    ChildView: __webpack_require__(16)
 	};
 
 	function _App(config) {
@@ -617,6 +617,46 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	var Storage = __webpack_require__(17),
+	    inherit = __webpack_require__(9).inherit,
+	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
+
+	        Storage.call(this, properties);
+
+	        this.pathPrefix = this.pathPrefix || '';
+	        this.deleteMethod = this.deleteMethod || 'delete';
+	    });
+
+	function _makeAjaxParams(type, pathPrefix, params) {
+	    return {
+	        type: type,
+	        url: pathPrefix + params.path,
+	        data: type === 'get' ? params.data : JSON.stringify(params.data),
+	        contentType: type === 'get' ? 'application/x-www-form-urlencoded' : 'application/json'
+	    };
+	}
+
+	RESTApiStorage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, 'post', this.pathPrefix).ajax();
+	};
+
+	RESTApiStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
+	};
+
+	RESTApiStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
+	    return upstream.map(_makeAjaxParams, this.deleteMethod, this.pathPrefix).ajax();
+	};
+
+	module.exports = RESTApiStorage;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
 	    inherit = __webpack_require__(9).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
@@ -649,7 +689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
@@ -687,46 +727,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = ChildView;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var Storage = __webpack_require__(17),
-	    inherit = __webpack_require__(9).inherit,
-	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
-
-	        Storage.call(this, properties);
-
-	        this.pathPrefix = this.pathPrefix || '';
-	        this.deleteMethod = this.deleteMethod || 'delete';
-	    });
-
-	function _makeAjaxParams(type, pathPrefix, params) {
-	    return {
-	        type: type,
-	        url: pathPrefix + params.path,
-	        data: type === 'get' ? params.data : JSON.stringify(params.data),
-	        contentType: type === 'get' ? 'application/x-www-form-urlencoded' : 'application/json'
-	    };
-	}
-
-	RESTApiStorage.prototype.makeSetItemStream = function makeSetItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, 'post', this.pathPrefix).ajax();
-	};
-
-	RESTApiStorage.prototype.makeGetItemStream = function makeGetItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, 'get', this.pathPrefix).ajax();
-	};
-
-	RESTApiStorage.prototype.makeRemoveItemStream = function makeRemoveItemStream(upstream) {
-	    return upstream.map(_makeAjaxParams, this.deleteMethod, this.pathPrefix).ajax();
-	};
-
-	module.exports = RESTApiStorage;
-
 
 /***/ },
 /* 17 */
@@ -768,7 +768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(15),
+	            ChildView = __webpack_require__(16),
 	            renderEvent$ = new Bacon.Bus(),
 	            renderedEl$ = null,
 	            listenToFunc = null,
