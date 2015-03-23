@@ -824,17 +824,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        renderedEl$ = self.onRender$.map(self.el$);
 
-	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
-
-	        self.on$.preRender = self.onPreRender$;
-	        self.on$.render = self.onRender$;
-	        self.on$.postRender = self.onPostRender$;
-
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
 	            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
 	            widget.assign(_.noop); // bad workaround...
 	            return widget;
 	        });
+
+	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
+
+	        self.on$.preRender = self.onPreRender$;
+	        self.on$.render = self.onRender$;
+	        self.on$.postRender = self.onPostRender$;
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
 	            if (_.isPlainObject(v)) {
