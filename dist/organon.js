@@ -216,13 +216,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
+	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
 	var pathToRegexp = __webpack_require__(21),
 	    Router = function Router(properties) {
 
 	        var routes = {},
-	            leave$ = new Bacon.Bus();
+	            routeState$ = null;
 
 	        properties = _.defaults(properties || {}, {
 	            debug: false,
@@ -241,22 +241,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	            };
 	        });
 
-	        this.onRoute$ = this.dispatch$
+	        routeState$ = this.dispatch$
 	            .map(parse, properties, routes)
 	            .where()
 	            .truthy()
-	            .scan(null, function(prev, newRoute) {
-	                if (prev) {
-	                    leave$.push(prev);
-	                }
-	                return newRoute;
+	            .scan({current: null}, function(prev, newRoute) {
+	                return {
+	                    prev: prev.current,
+	                    current: newRoute
+	                };
 	            }).changes();
 
-	        this.onLeave$ = leave$.doAction(function(){});
+	        this.onLeave$ = routeState$.map('.prev').where().truthy();
+	        this.onRoute$ = routeState$.map('.current');
 
 	        if (properties.debug) {
-	            this.onRoute$.log('organon.Router.onRoute$');
 	            this.onLeave$.log('organon.Router.onLeave$');
+	            this.onRoute$.log('organon.Router.onRoute$');
 	        }
 	    };
 
@@ -317,7 +318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = Router;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
 /* 8 */

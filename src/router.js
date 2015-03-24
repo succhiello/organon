@@ -4,7 +4,7 @@ var pathToRegexp = require('path-to-regexp'),
     Router = function Router(properties) {
 
         var routes = {},
-            leave$ = new Bacon.Bus();
+            routeState$ = null;
 
         properties = _.defaults(properties || {}, {
             debug: false,
@@ -23,22 +23,23 @@ var pathToRegexp = require('path-to-regexp'),
             };
         });
 
-        this.onRoute$ = this.dispatch$
+        routeState$ = this.dispatch$
             .map(parse, properties, routes)
             .where()
             .truthy()
-            .scan(null, function(prev, newRoute) {
-                if (prev) {
-                    leave$.push(prev);
-                }
-                return newRoute;
+            .scan({current: null}, function(prev, newRoute) {
+                return {
+                    prev: prev.current,
+                    current: newRoute
+                };
             }).changes();
 
-        this.onLeave$ = leave$.doAction(function(){});
+        this.onLeave$ = routeState$.map('.prev').where().truthy();
+        this.onRoute$ = routeState$.map('.current');
 
         if (properties.debug) {
-            this.onRoute$.log('organon.Router.onRoute$');
             this.onLeave$.log('organon.Router.onLeave$');
+            this.onRoute$.log('organon.Router.onRoute$');
         }
     };
 
