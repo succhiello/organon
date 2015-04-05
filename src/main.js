@@ -8,9 +8,13 @@ var Router = require('./router'),
     AppData = require('./appData'),
     _app = null,
     _appEvent = new Bacon.Bus(),
-    onReady = null,
     INITIALIZE = 0,
-    READY = 1;
+    READY = 1,
+    onInitialize$ = _appEvent.filter(isState, INITIALIZE).map('.params'),
+    onReady$ = _appEvent.filter(isState, READY).map('.params'),
+    onReady = function onReady(f) {
+        return onReady$.onValue(f);
+    };
 
 module.exports.run = function run(config) {
     _app = new _App(config);
@@ -20,13 +24,13 @@ module.exports.app = function app() {
     return _app;
 };
 
+module.exports.onInitialize$ = onInitialize$;
 module.exports.onInitialize = function onInitialize(f) {
-    return _appEvent.filter(isState, INITIALIZE).map('.params').onValue(f);
+    return onInitialize$.onValue(f);
 };
 
-onReady = module.exports.onReady = function onReady(f) {
-    return _appEvent.filter(isState, READY).map('.params').onValue(f);
-};
+module.exports.onReady$ = onReady$;
+module.exports.onReady = onReady;
 
 module.exports.Router = Router;
 module.exports.AppData = AppData;
