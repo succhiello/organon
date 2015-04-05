@@ -66,46 +66,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _appEvent = new Bacon.Bus(),
 	    INITIALIZE = 0,
 	    READY = 1,
-	    onInitialize$ = _appEvent.filter(isState, INITIALIZE).map('.params'),
-	    onReady$ = _appEvent.filter(isState, READY).map('.params'),
+	    onInitialize$ = _appEvent.filter(_isState, INITIALIZE).map('.1'),
+	    onReady$ = _appEvent.filter(_isState, READY).map('.1'),
 	    onReady = function onReady(f) {
 	        return onReady$.onValue(f);
 	    };
 
-	module.exports.run = function run(config) {
-	    _app = new _App(config);
-	};
+	module.exports = {
 
-	module.exports.app = function app() {
-	    return _app;
-	};
+	    run: function run(config) {
+	        _app = new _App(config);
+	    },
+	    app: function app() {
+	        return _app;
+	    },
 
-	module.exports.onInitialize$ = onInitialize$;
-	module.exports.onInitialize = function onInitialize(f) {
-	    return onInitialize$.onValue(f);
-	};
+	    onInitialize$: onInitialize$,
+	    onInitialize: function onInitialize(f) {
+	        return onInitialize$.onValue(f);
+	    },
+	    onReady$: onReady$,
+	    onReady: onReady,
 
-	module.exports.onReady$ = onReady$;
-	module.exports.onReady = onReady;
-
-	module.exports.Router = Router;
-	module.exports.AppData = AppData;
-	module.exports.util = __webpack_require__(9);
-	module.exports.events = { Events: __webpack_require__(10) };
-	module.exports.entity = { Entity: __webpack_require__(11) };
-	module.exports.presenter = { Presenter: __webpack_require__(12) };
-	module.exports.repository = { Repository: __webpack_require__(13) };
-	module.exports.storage = {
-	    Storage: __webpack_require__(17),
-	    RESTApiStorage: __webpack_require__(14)
-	};
-	module.exports.view = {
-	    View: __webpack_require__(18),
-	    AppView: __webpack_require__(15),
-	    ChildView: __webpack_require__(16)
+	    AppData: AppData,
+	    util: __webpack_require__(9),
+	    events: { Events: __webpack_require__(10) },
+	    entity: { Entity: __webpack_require__(11) },
+	    presenter: { Presenter: __webpack_require__(12) },
+	    repository: { Repository: __webpack_require__(13) },
+	    storage: {
+	        Storage: __webpack_require__(17),
+	        RESTApiStorage: __webpack_require__(14)
+	    },
+	    view: {
+	        View: __webpack_require__(18),
+	        AppView: __webpack_require__(15),
+	        ChildView: __webpack_require__(16)
+	    }
 	};
 
 	function _App(config) {
+
+	    var self = this;
 
 	    this.currentPath = function currentPath() {
 
@@ -144,8 +146,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    this.registerView = function(name, viewClass, presenterClass) {
 
-	        var self = this;
-
 	        this.router.onRoute(name).take(1).doAction(function(route) {
 	            var view = new viewClass(self),
 	                presenter = presenterClass ? new presenterClass(self) : null;
@@ -156,14 +156,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }).map('.path').assign(this, 'dispatch'); // re-routing
 	    };
 
-	    _appEvent.push({state: INITIALIZE, params: this});
-	    _appEvent.push({state: READY, params: this});
+	    _appEvent.plug(Bacon.fromArray([INITIALIZE, READY]).map(function(state) {
+	        return [state, self];
+	    }));
+	    _appEvent.end();
 
 	    this.dispatch(config.initialPath);
 	}
 
-	function isState(state, appEvent) {
-	    return appEvent.state === state;
+	function _isState(state, args) {
+	    return args[0] === state;
 	}
 
 	onReady(function(app) {

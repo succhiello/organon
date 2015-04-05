@@ -10,46 +10,48 @@ var Router = require('./router'),
     _appEvent = new Bacon.Bus(),
     INITIALIZE = 0,
     READY = 1,
-    onInitialize$ = _appEvent.filter(isState, INITIALIZE).map('.params'),
-    onReady$ = _appEvent.filter(isState, READY).map('.params'),
+    onInitialize$ = _appEvent.filter(_isState, INITIALIZE).map('.1'),
+    onReady$ = _appEvent.filter(_isState, READY).map('.1'),
     onReady = function onReady(f) {
         return onReady$.onValue(f);
     };
 
-module.exports.run = function run(config) {
-    _app = new _App(config);
-};
+module.exports = {
 
-module.exports.app = function app() {
-    return _app;
-};
+    run: function run(config) {
+        _app = new _App(config);
+    },
+    app: function app() {
+        return _app;
+    },
 
-module.exports.onInitialize$ = onInitialize$;
-module.exports.onInitialize = function onInitialize(f) {
-    return onInitialize$.onValue(f);
-};
+    onInitialize$: onInitialize$,
+    onInitialize: function onInitialize(f) {
+        return onInitialize$.onValue(f);
+    },
+    onReady$: onReady$,
+    onReady: onReady,
 
-module.exports.onReady$ = onReady$;
-module.exports.onReady = onReady;
-
-module.exports.Router = Router;
-module.exports.AppData = AppData;
-module.exports.util = require('./util');
-module.exports.events = { Events: require('./events') };
-module.exports.entity = { Entity: require('./entity') };
-module.exports.presenter = { Presenter: require('./presenter') };
-module.exports.repository = { Repository: require('./repository') };
-module.exports.storage = {
-    Storage: require('./storage'),
-    RESTApiStorage: require('./storage/restapi')
-};
-module.exports.view = {
-    View: require('./view'),
-    AppView: require('./view/appView'),
-    ChildView: require('./view/childView')
+    AppData: AppData,
+    util: require('./util'),
+    events: { Events: require('./events') },
+    entity: { Entity: require('./entity') },
+    presenter: { Presenter: require('./presenter') },
+    repository: { Repository: require('./repository') },
+    storage: {
+        Storage: require('./storage'),
+        RESTApiStorage: require('./storage/restapi')
+    },
+    view: {
+        View: require('./view'),
+        AppView: require('./view/appView'),
+        ChildView: require('./view/childView')
+    }
 };
 
 function _App(config) {
+
+    var self = this;
 
     this.currentPath = function currentPath() {
 
@@ -88,8 +90,6 @@ function _App(config) {
 
     this.registerView = function(name, viewClass, presenterClass) {
 
-        var self = this;
-
         this.router.onRoute(name).take(1).doAction(function(route) {
             var view = new viewClass(self),
                 presenter = presenterClass ? new presenterClass(self) : null;
@@ -100,14 +100,16 @@ function _App(config) {
         }).map('.path').assign(this, 'dispatch'); // re-routing
     };
 
-    _appEvent.push({state: INITIALIZE, params: this});
-    _appEvent.push({state: READY, params: this});
+    _appEvent.plug(Bacon.fromArray([INITIALIZE, READY]).map(function(state) {
+        return [state, self];
+    }));
+    _appEvent.end();
 
     this.dispatch(config.initialPath);
 }
 
-function isState(state, appEvent) {
-    return appEvent.state === state;
+function _isState(state, args) {
+    return args[0] === state;
 }
 
 onReady(function(app) {
