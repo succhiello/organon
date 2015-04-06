@@ -1,7 +1,7 @@
 describe('organon.presenter.Presenter', function() {
 
     var presenter, server,
-        organon = require('../src/main');
+        organon = require('../src');
 
     organon.run({});
     var initialViewModel = {
