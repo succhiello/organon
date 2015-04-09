@@ -20,6 +20,7 @@ module.exports = {
 
     run: function run(config) {
         _app = new _App(config);
+        _app.run();
     },
     app: function app() {
         return _app;
@@ -53,14 +54,6 @@ function _App(config) {
 
     var self = this;
 
-    this.currentPath = function currentPath() {
-
-        var location = window.history.location || window.location;
-        return location.hash.length > 0 ?
-               location.hash.slice(1) :
-               location.pathname + location.search;
-    };
-
     this.config = _.defaults(config, {
         debug: false,
         body: 'body',
@@ -75,38 +68,53 @@ function _App(config) {
     this.data = new AppData(this.config.initialAppData);
 
     this.debug = this.config.debug;
+}
 
-    this.route = function route(path, params) {
-        if (params) {
-            path += (path.indexOf('?') == -1 ? '?' : '&') + $.param(params);
+_App.prototype.currentPath = function currentPath() {
+
+    var location = window.history.location || window.location;
+    return location.hash.length > 0 ?
+           location.hash.slice(1) :
+           location.pathname + location.search;
+};
+
+_App.prototype.route = function route(path, params) {
+    if (params) {
+        path += (path.indexOf('?') == -1 ? '?' : '&') + $.param(params);
+    }
+    history.pushState(null, null, path);
+    this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
+};
+
+_App.prototype.dispatch = function dispatch(path) {
+    this.router.dispatch(path || this.currentPath());
+};
+
+_App.prototype.registerView = function registerView(name, viewClass, presenterClass) {
+
+    var self = this;
+
+    this.router.onRoute(name).take(1).doAction(function(route) {
+        var view = new viewClass(self),
+            presenter = presenterClass ? new presenterClass(self) : null;
+        if (presenter) {
+            view.listenTo('presenter', presenter);
+            presenter.listenTo('view', view);
         }
-        history.pushState(null, null, path);
-        this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
-    };
+    }).map('.path').assign(this, 'dispatch'); // re-routing
+};
 
-    this.dispatch = function dispatch(path) {
-        this.router.dispatch(path || this.currentPath());
-    };
+_App.prototype.run = function run() {
 
-    this.registerView = function(name, viewClass, presenterClass) {
-
-        this.router.onRoute(name).take(1).doAction(function(route) {
-            var view = new viewClass(self),
-                presenter = presenterClass ? new presenterClass(self) : null;
-            if (presenter) {
-                view.listenTo('presenter', presenter);
-                presenter.listenTo('view', view);
-            }
-        }).map('.path').assign(this, 'dispatch'); // re-routing
-    };
+    var self = this;
 
     _appEvent.plug(Bacon.fromArray([INITIALIZE, READY]).map(function(state) {
         return [state, self];
     }));
     _appEvent.end();
 
-    this.dispatch(config.initialPath);
-}
+    this.dispatch(this.config.initialPath);
+};
 
 function _isState(state, args) {
     return args[0] === state;
