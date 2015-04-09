@@ -62,32 +62,40 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var Router = __webpack_require__(7),
 	    AppData = __webpack_require__(8),
-	    _app = null,
+	    _apps = {},
 	    _appEvent = new Bacon.Bus(),
 	    INITIALIZE = 0,
 	    READY = 1,
-	    onInitialize$ = _appEvent.filter(_isState, INITIALIZE).map('.1'),
-	    onReady$ = _appEvent.filter(_isState, READY).map('.1'),
-	    onReady = function onReady(f) {
-	        return onReady$.onValue(f);
-	    };
+	    _onInitialize$ = _appEvent.filter(_isState, INITIALIZE).map('.1'),
+	    _onReady$ = _appEvent.filter(_isState, READY).map('.1');
 
 	module.exports = {
 
 	    run: function run(config) {
-	        _app = new _App(config);
-	        _app.run();
-	    },
-	    app: function app() {
-	        return _app;
+	        _create(config).run();
 	    },
 
-	    onInitialize$: onInitialize$,
-	    onInitialize: function onInitialize(f) {
-	        return onInitialize$.onValue(f);
+	    app: function app(id) {
+	        id = id || '';
+	        return _apps[id];
 	    },
-	    onReady$: onReady$,
-	    onReady: onReady,
+
+	    onInitialize$: function onInitialize$(id) {
+	        id = id || '';
+	        return _onInitialize$.filter(function(app) { return app.id() === id; });
+	    },
+	    onInitialize: function onInitialize(/* id?: string, f: (app: _App) => void */) {
+	        var args = _makeArgs(arguments);
+	        return this.onInitialize$(args[0]).onValue(args[1]);
+	    },
+	    onReady$: function onReady$(id) {
+	        id = id || '';
+	        return _onReady$.filter(function(app) { return app.id() === id; });
+	    },
+	    onReady: function onReady(/* id?: string, f: (app: _App) => void */) {
+	        var args = _makeArgs(arguments);
+	        return this.onReady$(args[0]).onValue(args[1]);
+	    },
 
 	    AppData: AppData,
 	    util: __webpack_require__(9),
@@ -108,9 +116,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _App(config) {
 
-	    var self = this;
+	    var id = '';
 
-	    this.config = _.defaults(config, {
+	    this.config = _.defaults(config || {}, {
+	        id: '',
 	        debug: false,
 	        body: 'body',
 	        link: 'a',
@@ -120,10 +129,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        initialAppData: {}
 	    });
 
+	    id = this.config.id;
+
+	    this.debug = this.config.debug;
 	    this.router = new Router(this.config);
 	    this.data = new AppData(this.config.initialAppData);
 
-	    this.debug = this.config.debug;
+	    this.id = function() { return id; }
 	}
 
 	_App.prototype.currentPath = function currentPath() {
@@ -167,16 +179,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _appEvent.plug(Bacon.fromArray([INITIALIZE, READY]).map(function(state) {
 	        return [state, self];
 	    }));
-	    _appEvent.end();
 
 	    this.dispatch(this.config.initialPath);
 	};
+
+	function _create(config) {
+
+	    var app = new _App(config),
+	        id = app.id();
+
+	    if (!_.isUndefined(_apps[id])) {
+	        throw new Error('app "' + id + '" already exists.');
+	    }
+
+	    _apps[id] = app;
+	    return app;
+	}
+
+	function _makeArgs(args) {
+	    var id = '',
+	        f = null;
+	    if (args.length === 1) {
+	        f = args[0];
+	    } else if (args.length === 2) {
+	        id = args[0];
+	        f = args[1];
+	    } else {
+	        throw new Error('invalid arguments');
+	    }
+
+	    return [id, f];
+	}
 
 	function _isState(state, args) {
 	    return args[0] === state;
 	}
 
-	onReady(function(app) {
+	module.exports.onReady(function(app) {
 
 	    $(app.config.body).clickE(app.config.link)
 	        .doAction('.preventDefault')
