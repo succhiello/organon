@@ -158,18 +158,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.router.dispatch(path || this.currentPath());
 	};
 
+	_App.prototype.onRouteFirst = function onRouteFirst(name, f) {
+
+	    this.router.onRoute(name)
+	        .take(1)
+	        .doAction(f)
+	        .map('.path')
+	        .assign(this, 'dispatch'); // re-routing
+	};
+
 	_App.prototype.registerView = function registerView(name, viewClass, presenterClass) {
 
 	    var self = this;
 
-	    this.router.onRoute(name).take(1).doAction(function(route) {
+	    this.onRouteFirst(name, function(route) {
 	        var view = new viewClass(self),
 	            presenter = presenterClass ? new presenterClass(self) : null;
 	        if (presenter) {
 	            view.listenTo('presenter', presenter);
 	            presenter.listenTo('view', view);
 	        }
-	    }).map('.path').assign(this, 'dispatch'); // re-routing
+	    });
 	};
 
 	_App.prototype.run = function run() {
