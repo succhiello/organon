@@ -62,56 +62,64 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var Router = __webpack_require__(7),
 	    AppData = __webpack_require__(8),
-	    _app = null,
+	    _apps = {},
 	    _appEvent = new Bacon.Bus(),
-	    onReady = null,
 	    INITIALIZE = 0,
-	    READY = 1;
+	    READY = 1,
+	    _onInitialize$ = _appEvent.filter(_isState, INITIALIZE).map('.1'),
+	    _onReady$ = _appEvent.filter(_isState, READY).map('.1');
 
-	module.exports.run = function run(config) {
-	    _app = new _App(config);
-	};
+	module.exports = {
 
-	module.exports.app = function app() {
-	    return _app;
-	};
+	    run: function run(config) {
+	        _create(config).run();
+	    },
 
-	module.exports.onInitialize = function onInitialize(f) {
-	    return _appEvent.filter(isState, INITIALIZE).map('.params').onValue(f);
-	};
+	    app: function app(id) {
+	        id = id || '';
+	        return _apps[id];
+	    },
 
-	onReady = module.exports.onReady = function onReady(f) {
-	    return _appEvent.filter(isState, READY).map('.params').onValue(f);
-	};
+	    onInitialize$: function onInitialize$(id) {
+	        id = id || '';
+	        return _onInitialize$.filter(function(app) { return app.id() === id; });
+	    },
+	    onInitialize: function onInitialize(/* id?: string, f: (app: _App) => void */) {
+	        var args = _makeArgs(arguments);
+	        return this.onInitialize$(args[0]).onValue(args[1]);
+	    },
+	    onReady$: function onReady$(id) {
+	        id = id || '';
+	        return _onReady$.filter(function(app) { return app.id() === id; });
+	    },
+	    onReady: function onReady(/* id?: string, f: (app: _App) => void */) {
+	        var args = _makeArgs(arguments);
+	        return this.onReady$(args[0]).onValue(args[1]);
+	    },
 
-	module.exports.Router = Router;
-	module.exports.AppData = AppData;
-	module.exports.util = __webpack_require__(9);
-	module.exports.events = { Events: __webpack_require__(10) };
-	module.exports.entity = { Entity: __webpack_require__(11) };
-	module.exports.presenter = { Presenter: __webpack_require__(12) };
-	module.exports.repository = { Repository: __webpack_require__(13) };
-	module.exports.storage = {
-	    Storage: __webpack_require__(17),
-	    RESTApiStorage: __webpack_require__(14)
-	};
-	module.exports.view = {
-	    View: __webpack_require__(18),
-	    AppView: __webpack_require__(15),
-	    ChildView: __webpack_require__(16)
+	    AppData: AppData,
+	    util: __webpack_require__(9),
+	    events: { Events: __webpack_require__(10) },
+	    entity: { Entity: __webpack_require__(11) },
+	    presenter: { Presenter: __webpack_require__(12) },
+	    repository: { Repository: __webpack_require__(13) },
+	    storage: {
+	        Storage: __webpack_require__(17),
+	        RESTApiStorage: __webpack_require__(14)
+	    },
+	    view: {
+	        View: __webpack_require__(18),
+	        AppView: __webpack_require__(15),
+	        ChildView: __webpack_require__(16)
+	    }
 	};
 
 	function _App(config) {
 
-	    this.currentPath = function currentPath() {
+	    var id = '';
 
-	        var location = window.history.location || window.location;
-	        return location.hash.length > 0 ?
-	               location.hash.slice(1) :
-	               location.pathname + location.search;
-	    };
-
-	    this.config = _.defaults(config, {
+	    this.config = _.defaults(config || {}, {
+	        id: '',
 	        debug: false,
 	        body: 'body',
 	        link: 'a',
@@ -121,48 +129,102 @@ return /******/ (function(modules) { // webpackBootstrap
 	        initialAppData: {}
 	    });
 
+	    id = this.config.id;
+
+	    this.debug = this.config.debug;
 	    this.router = new Router(this.config);
 	    this.data = new AppData(this.config.initialAppData);
 
-	    this.debug = this.config.debug;
+	    this.id = function() { return id; }
+	}
 
-	    this.route = function route(path, params) {
-	        if (params) {
-	            path += (path.indexOf('?') == -1 ? '?' : '&') + $.param(params);
+	_App.prototype.currentPath = function currentPath() {
+
+	    var location = window.history.location || window.location;
+	    return location.hash.length > 0 ?
+	           location.hash.slice(1) :
+	           location.pathname + location.search;
+	};
+
+	_App.prototype.route = function route(path, params) {
+	    if (params) {
+	        path += (path.indexOf('?') == -1 ? '?' : '&') + $.param(params);
+	    }
+	    history.pushState(null, null, path);
+	    this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
+	};
+
+	_App.prototype.dispatch = function dispatch(path) {
+	    this.router.dispatch(path || this.currentPath());
+	};
+
+	_App.prototype.onRouteFirst = function onRouteFirst(name, f) {
+
+	    this.router.onRoute(name)
+	        .take(1)
+	        .doAction(f)
+	        .map('.path')
+	        .assign(this, 'dispatch'); // re-routing
+	};
+
+	_App.prototype.registerView = function registerView(name, viewClass, presenterClass) {
+
+	    var self = this;
+
+	    this.onRouteFirst(name, function(route) {
+	        var view = new viewClass(self),
+	            presenter = presenterClass ? new presenterClass(self) : null;
+	        if (presenter) {
+	            view.listenTo('presenter', presenter);
+	            presenter.listenTo('view', view);
 	        }
-	        history.pushState(null, null, path);
-	        this.dispatch(path.replace(/^.*\/\/[^\/]+/, ''));
-	    };
+	    });
+	};
 
-	    this.dispatch = function dispatch(path) {
-	        this.router.dispatch(path || this.currentPath());
-	    };
+	_App.prototype.run = function run() {
 
-	    this.registerView = function(name, viewClass, presenterClass) {
+	    var self = this;
 
-	        var self = this;
+	    _appEvent.plug(Bacon.fromArray([INITIALIZE, READY]).map(function(state) {
+	        return [state, self];
+	    }));
 
-	        this.router.onRoute(name).take(1).doAction(function(route) {
-	            var view = new viewClass(self),
-	                presenter = presenterClass ? new presenterClass(self) : null;
-	            if (presenter) {
-	                view.listenTo('presenter', presenter);
-	                presenter.listenTo('view', view);
-	            }
-	        }).map('.path').assign(this, 'dispatch'); // re-routing
-	    };
+	    this.dispatch(this.config.initialPath);
+	};
 
-	    _appEvent.push({state: INITIALIZE, params: this});
-	    _appEvent.push({state: READY, params: this});
+	function _create(config) {
 
-	    this.dispatch(config.initialPath);
+	    var app = new _App(config),
+	        id = app.id();
+
+	    if (!_.isUndefined(_apps[id])) {
+	        throw new Error('app "' + id + '" already exists.');
+	    }
+
+	    _apps[id] = app;
+	    return app;
 	}
 
-	function isState(state, appEvent) {
-	    return appEvent.state === state;
+	function _makeArgs(args) {
+	    var id = '',
+	        f = null;
+	    if (args.length === 1) {
+	        f = args[0];
+	    } else if (args.length === 2) {
+	        id = args[0];
+	        f = args[1];
+	    } else {
+	        throw new Error('invalid arguments');
+	    }
+
+	    return [id, f];
 	}
 
-	onReady(function(app) {
+	function _isState(state, args) {
+	    return args[0] === state;
+	}
+
+	module.exports.onReady(function(app) {
 
 	    $(app.config.body).clickE(app.config.link)
 	        .doAction('.preventDefault')

@@ -2,7 +2,7 @@ var path = require('path'),
     webpack = require('webpack');
 
 module.exports = {
-    entry: './src/main',
+    entry: './src',
     output: {
         path: path.join(__dirname, 'dist'),
         filename: 'organon.js',
