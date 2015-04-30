@@ -10,8 +10,9 @@ var View = require('../view'),
             name: this.name || ''
         });
 
-        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
         this.onLeave$ = app.router.onLeave(properties.name).map('.params');
+        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
+        this.isLoaded$ = this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false);
 
         this.on$ = {
             load: this.onLoad$,
@@ -24,9 +25,7 @@ var View = require('../view'),
         this.listenTo = function(name, publisher) {
             var filteredEvents = {
                 on$: _.mapValues(publisher.on$, function(v) {
-                    return v.filter(
-                        this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false)
-                    );
+                    return v.filter(this.isLoaded$);
                 }, this)
             };
             listenToFunc(name, filteredEvents);
