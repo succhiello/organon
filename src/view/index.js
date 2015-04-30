@@ -69,11 +69,13 @@ var inherit = require('../util').inherit,
             return widget;
         });
 
-        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
+        self.on$ = _.defaults(self.on$ || {}, {
+            preRender: self.onPreRender$,
+            render: self.onRender$,
+            postRender: self.onPostRender$
+        });
 
-        self.on$.preRender = self.onPreRender$;
-        self.on$.render = self.onRender$;
-        self.on$.postRender = self.onPostRender$;
+        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
         self.children = _.mapValues(properties.childDefs, function(v) {
             if (_.isPlainObject(v)) {
