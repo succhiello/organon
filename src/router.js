@@ -35,6 +35,7 @@ var pathToRegexp = require('path-to-regexp'),
             }).changes();
 
         this.onLeave$ = routeState$.map('.prev').where().truthy();
+        this.onLeave$.assign(); // work around for leave -> after order.
         this.onRoute$ = routeState$.map('.current');
 
         if (properties.debug) {
