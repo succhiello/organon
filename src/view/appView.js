@@ -2,6 +2,8 @@ var View = require('../view'),
     inherit = require('../util').inherit,
     AppView = inherit(View, function AppView(app, properties) {
 
+        var listenToFunc = null;
+
         this.app = app;
 
         properties = _.defaults(properties || {}, {
@@ -11,10 +13,24 @@ var View = require('../view'),
         this.onLoad$ = app.router.onRoute(properties.name).map('.params');
         this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
+        this.on$ = {
+            load: this.onLoad$,
+            leave: this.onLeave$
+        };
+
         View.call(this, properties);
 
-        this.on$.load = this.onLoad$;
-        this.on$.leave = this.onLeave$;
+        listenToFunc = this.listenTo;
+        this.listenTo = function(name, publisher) {
+            var filteredEvents = {
+                on$: _.mapValues(publisher.on$, function(v) {
+                    return v.filter(
+                        this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false)
+                    );
+                }, this)
+            };
+            listenToFunc(name, filteredEvents);
+        };
     });
 
 AppView.prototype.onLoad = function onLoad(f) {

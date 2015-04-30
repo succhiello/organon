@@ -724,6 +724,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    inherit = __webpack_require__(9).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
+	        var listenToFunc = null;
+
 	        this.app = app;
 
 	        properties = _.defaults(properties || {}, {
@@ -733,10 +735,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
 	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 
+	        this.on$ = {
+	            load: this.onLoad$,
+	            leave: this.onLeave$
+	        };
+
 	        View.call(this, properties);
 
-	        this.on$.load = this.onLoad$;
-	        this.on$.leave = this.onLeave$;
+	        listenToFunc = this.listenTo;
+	        this.listenTo = function(name, publisher) {
+	            var filteredEvents = {
+	                on$: _.mapValues(publisher.on$, function(v) {
+	                    return v.filter(
+	                        this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false)
+	                    );
+	                }, this)
+	            };
+	            listenToFunc(name, filteredEvents);
+	        };
 	    });
 
 	AppView.prototype.onLoad = function onLoad(f) {
@@ -893,11 +909,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return widget;
 	        });
 
-	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
+	        self.on$ = _.defaults(self.on$ || {}, {
+	            preRender: self.onPreRender$,
+	            render: self.onRender$,
+	            postRender: self.onPostRender$
+	        });
 
-	        self.on$.preRender = self.onPreRender$;
-	        self.on$.render = self.onRender$;
-	        self.on$.postRender = self.onPostRender$;
+	        Publisher.call(self, properties, renderedEl$, self.onPreRender$);
 
 	        self.children = _.mapValues(properties.childDefs, function(v) {
 	            if (_.isPlainObject(v)) {
@@ -992,7 +1010,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        refresher$ = Bacon.constant();
 	    }
 
-	    self.on$ = _.mapValues(properties.on, function(f, name) {
+	    self.on$ = _.defaults(_.mapValues(properties.on, function(f, name) {
 
 	        var stream = refresher$.flatMap(function(arg) {
 	            var s = f.call(self, arg);
@@ -1004,7 +1022,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        return stream;
-	    });
+	    }), self.on$);
 	};
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))

@@ -12,7 +12,7 @@ module.exports = function Publisher(properties, refresher$, unsubscriber$) {
         refresher$ = Bacon.constant();
     }
 
-    self.on$ = _.mapValues(properties.on, function(f, name) {
+    self.on$ = _.defaults(_.mapValues(properties.on, function(f, name) {
 
         var stream = refresher$.flatMap(function(arg) {
             var s = f.call(self, arg);
@@ -24,5 +24,5 @@ module.exports = function Publisher(properties, refresher$, unsubscriber$) {
         }
 
         return stream;
-    });
+    }), self.on$);
 };
