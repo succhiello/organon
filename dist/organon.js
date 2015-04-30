@@ -735,7 +735,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        this.onLeave$ = app.router.onLeave(properties.name).map('.params');
 	        this.onLoad$ = app.router.onRoute(properties.name).map('.params');
-	        this.isLoaded$ = this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false).log();
+	        this.isLoaded$ = this.onLoad$.map(true).merge(this.onLeave$.map(false)).toProperty(false);
 
 	        this.on$ = {
 	            load: this.onLoad$,
