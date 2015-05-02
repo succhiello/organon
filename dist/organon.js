@@ -725,7 +725,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    inherit = __webpack_require__(9).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
-	        var listenToFunc = null;
+	        var self = this,
+	            listenToFunc = null;
 
 	        this.app = app;
 
@@ -742,17 +743,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            leave: this.onLeave$
 	        };
 
-	        View.call(this, properties);
-
 	        listenToFunc = this.listenTo;
 	        this.listenTo = function(name, publisher) {
 	            var filteredEvents = {
 	                on$: _.mapValues(publisher.on$, function(v) {
-	                    return v.filter(this.isLoaded$);
-	                }, this)
+	                    return v.filter(self.isLoaded$);
+	                })
 	            };
 	            listenToFunc(name, filteredEvents);
 	        };
+
+	        View.call(this, properties);
 	    });
 
 	AppView.prototype.onLoad = function onLoad(f) {
