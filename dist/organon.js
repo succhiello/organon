@@ -604,7 +604,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.bus[name] = new Bacon.Bus();
 	            this.sink[name] = (def.sinkFactory || _genericSinkFactory).call(this, name, this.bus[name]);
 	            this.error[name] = this.sink[name].errors();
-	            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]);
+	            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]).changes().merge(
+	                this.error[name].mapError(false)
+	            );
 	        }, this);
 	    };
 
