@@ -604,7 +604,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.bus[name] = new Bacon.Bus();
 	            this.sink[name] = (def.sinkFactory || _genericSinkFactory).call(this, name, this.bus[name]);
 	            this.error[name] = this.sink[name].errors();
-	            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]);
+	            this.awaiting[name] = this.bus[name].awaiting(this.sink[name]).changes().merge(
+	                this.error[name].mapError(false)
+	            );
 	        }, this);
 	    };
 
@@ -999,32 +1001,70 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	module.exports = function Publisher(properties, refresher$, unsubscriber$) {
+	module.exports = function Publisher(config, refresher$, unsubscriber$) {
 
 	    var self = this;
 
-	    properties = _.defaults(properties || {}, {
-	        on: self.on || {}
+	    config = _.defaults(config || {}, {
+	        on: self.on || {},
+	        prop: self.prop || {}
 	    });
 
 	    if (!refresher$) {
 	        refresher$ = Bacon.constant();
 	    }
 
-	    self.on$ = _.defaults(_.mapValues(properties.on, function(f, name) {
+	    this.on$ = _.defaults(
+	        _.mapValues(config.on, _.bind(_makeStream, this, false, config, refresher$, unsubscriber$)),
+	        this.on$
+	    );
 
-	        var stream = refresher$.flatMap(function(arg) {
-	            var s = f.call(self, arg);
-	            return unsubscriber$ ? s.takeUntil(unsubscriber$) : s;
-	        });
-
-	        if (properties.debug) {
-	            stream.log('organon.Publisher[' + (properties.name ? properties.name : '') + '].on$.' + name);
-	        }
-
-	        return stream;
-	    }), self.on$);
+	    this.prop$ = _.defaults(
+	        _.mapValues(config.prop, _.bind(_makeStream, this, true, config, refresher$, unsubscriber$)),
+	        this.prop$
+	    );
 	};
+
+	function _makeStream(isProp, config, refresher$, unsubscriber$, value, name) {
+
+	    var self = this,
+	        f = null,
+	        initialValue = null,
+	        initialValueExists = false,
+	        stream = null;
+
+	    if (isProp) {
+	        if (_.isArray(value)) {
+	            if (value.length !== 2) {
+	                throw new Error('invalid prop definition "' + value + '".');
+	            }
+	            initialValue = value[0];
+	            initialValueExists = true;
+	            f = value[1];
+	        } else {
+	            f = value;
+	        }
+	    } else {
+	        f = value;
+	    }
+
+	    stream = refresher$.flatMap(function(arg) {
+	        var s = f.call(self, arg);
+	        return unsubscriber$ ? s.takeUntil(unsubscriber$) : s;
+	    });
+
+	    if (isProp) {
+	        stream = initialValueExists ? stream.toProperty(initialValue) : stream.toProperty();
+	    }
+
+	    if (config.debug) {
+	        stream.log(
+	            'organon.Publisher[' + (config.name ? config.name : '') + '].' + (isProp ? 'prop' : 'on') + '$.' + name
+	        );
+	    }
+
+	    return stream;
+	}
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
