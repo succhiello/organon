@@ -123,7 +123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        debug: false,
 	        body: 'body',
 	        link: 'a',
-	        defaultView: '',
+	        defaultPath: null,
 	        routes: {},
 	        initialPath: this.currentPath(),
 	        initialAppData: {}
@@ -134,6 +134,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.debug = this.config.debug;
 	    this.router = new Router(this.config);
 	    this.data = new AppData(this.config.initialAppData);
+
+	    if (this.config.defaultPath) {
+	        this.router.errors$.onError(this, 'route', this.config.defaultPath, void 0);
+	    }
 
 	    this.id = function() { return id; }
 	}
@@ -288,8 +292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        properties = _.defaults(properties || {}, {
 	            debug: false,
-	            routes: {},
-	            defaultRoute: null
+	            routes: {}
 	        });
 
 	        this.dispatch$ = new Bacon.Bus();
@@ -303,16 +306,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            };
 	        });
 
-	        routeState$ = this.dispatch$
-	            .map(parse, properties, routes)
-	            .where()
-	            .truthy()
-	            .scan({current: null}, function(prev, newRoute) {
-	                return {
-	                    prev: prev.current,
-	                    current: newRoute
-	                };
-	            }).changes();
+	        routeState$ = this.dispatch$.flatMap(parse, properties, routes);
+
+	        this.errors$ = routeState$.errors();
+
+	        routeState$ = routeState$.skipErrors().scan({current: null}, function(prev, newRoute) {
+	            return {
+	                prev: prev.current,
+	                current: newRoute
+	            };
+	        }).changes();
 
 	        this.onLeave$ = routeState$.map('.prev').where().truthy();
 	        this.onLeave$.assign(); // work around for leave -> after order.
@@ -344,7 +347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var paths = [],
 	        params = {},
-	        name = properties.defaultRoute;
+	        name = null;
 
 	    if (!path) {
 	        path = '';
@@ -376,7 +379,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	    });
 
-	    return name ? { name: name, params: params, path: path } : null;
+	    return name ? { name: name, params: params, path: path } : new Bacon.Error('path "' + path + '" doesn\'t match any route.');
 	}
 
 	module.exports = Router;
