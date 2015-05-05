@@ -67,7 +67,7 @@ function _App(config) {
         debug: false,
         body: 'body',
         link: 'a',
-        defaultView: '',
+        defaultPath: null,
         routes: {},
         initialPath: this.currentPath(),
         initialAppData: {}
@@ -78,6 +78,10 @@ function _App(config) {
     this.debug = this.config.debug;
     this.router = new Router(this.config);
     this.data = new AppData(this.config.initialAppData);
+
+    if (this.config.defaultPath) {
+        this.router.errors$.onError(this, 'route', this.config.defaultPath, void 0);
+    }
 
     this.id = function() { return id; }
 }

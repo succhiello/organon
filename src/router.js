@@ -8,8 +8,7 @@ var pathToRegexp = require('path-to-regexp'),
 
         properties = _.defaults(properties || {}, {
             debug: false,
-            routes: {},
-            defaultRoute: null
+            routes: {}
         });
 
         this.dispatch$ = new Bacon.Bus();
@@ -23,16 +22,16 @@ var pathToRegexp = require('path-to-regexp'),
             };
         });
 
-        routeState$ = this.dispatch$
-            .map(parse, properties, routes)
-            .where()
-            .truthy()
-            .scan({current: null}, function(prev, newRoute) {
-                return {
-                    prev: prev.current,
-                    current: newRoute
-                };
-            }).changes();
+        routeState$ = this.dispatch$.flatMap(parse, properties, routes);
+
+        this.errors$ = routeState$.errors();
+
+        routeState$ = routeState$.skipErrors().scan({current: null}, function(prev, newRoute) {
+            return {
+                prev: prev.current,
+                current: newRoute
+            };
+        }).changes();
 
         this.onLeave$ = routeState$.map('.prev').where().truthy();
         this.onLeave$.assign(); // work around for leave -> after order.
@@ -64,7 +63,7 @@ function parse(properties, routes, path) {
 
     var paths = [],
         params = {},
-        name = properties.defaultRoute;
+        name = null;
 
     if (!path) {
         path = '';
@@ -96,7 +95,7 @@ function parse(properties, routes, path) {
         return true;
     });
 
-    return name ? { name: name, params: params, path: path } : null;
+    return name ? { name: name, params: params, path: path } : new Bacon.Error('path "' + path + '" doesn\'t match any route.');
 }
 
 module.exports = Router;
