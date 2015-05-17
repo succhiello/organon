@@ -914,7 +914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
 	            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
-	            widget.assign(_.noop); // bad workaround...
+	            widget.assign(); // bad workaround...
 	            return widget;
 	        });
 
@@ -946,6 +946,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (properties.initialize) {
 	            properties.initialize.call(self, self.children, self.on$, self.ui$);
 	        }
+
+	        // bad workaround...
+	        _.forEach(this.prop$, function(prop$) { prop$.assign(); });
+	        _.forEach(this.on$, function(on$) { on$.assign(); });
 	    })));
 
 	View.prototype.onPreRender = function onPreRender(f) {
