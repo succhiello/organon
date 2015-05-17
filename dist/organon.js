@@ -753,6 +753,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var filteredEvents = {
 	                on$: _.mapValues(publisher.on$, function(v) {
 	                    return v.filter(self.isLoaded$);
+	                }),
+	                prop$: _.mapValues(publisher.prop$, function(v) {
+	                    return v.filter(self.isLoaded$);
 	                })
 	            };
 	            listenToFunc(name, filteredEvents);
@@ -911,7 +914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        self.ui$ = _.mapValues(properties.ui, function(el) {
 	            var widget = renderedEl$.map(_getEl.bind(self), el).toProperty();
-	            widget.assign(_.noop); // bad workaround...
+	            widget.assign(); // bad workaround...
 	            return widget;
 	        });
 
@@ -943,6 +946,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (properties.initialize) {
 	            properties.initialize.call(self, self.children, self.on$, self.ui$);
 	        }
+
+	        // bad workaround...
+	        _.forEach(this.prop$, function(prop$) { prop$.assign(); });
+	        _.forEach(this.on$, function(on$) { on$.assign(); });
 	    })));
 
 	View.prototype.onPreRender = function onPreRender(f) {
@@ -1088,7 +1095,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.listenTo = function(name, publisher) {
 	        var subscription = properties.subscription[name];
 	        if (_.isFunction(subscription)) {
-	            subscription.call(self, publisher.on$);
+	            subscription.call(self, publisher.on$, publisher.prop$);
 	        }
 	    };
 	};

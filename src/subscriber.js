@@ -11,7 +11,7 @@ module.exports = function Subscriber(properties) {
     this.listenTo = function(name, publisher) {
         var subscription = properties.subscription[name];
         if (_.isFunction(subscription)) {
-            subscription.call(self, publisher.on$);
+            subscription.call(self, publisher.on$, publisher.prop$);
         }
     };
 };
