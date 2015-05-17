@@ -25,6 +25,9 @@ var View = require('../view'),
             var filteredEvents = {
                 on$: _.mapValues(publisher.on$, function(v) {
                     return v.filter(self.isLoaded$);
+                }),
+                prop$: _.mapValues(publisher.prop$, function(v) {
+                    return v.filter(self.isLoaded$);
                 })
             };
             listenToFunc(name, filteredEvents);

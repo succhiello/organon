@@ -753,6 +753,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var filteredEvents = {
 	                on$: _.mapValues(publisher.on$, function(v) {
 	                    return v.filter(self.isLoaded$);
+	                }),
+	                prop$: _.mapValues(publisher.prop$, function(v) {
+	                    return v.filter(self.isLoaded$);
 	                })
 	            };
 	            listenToFunc(name, filteredEvents);
@@ -1088,7 +1091,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.listenTo = function(name, publisher) {
 	        var subscription = properties.subscription[name];
 	        if (_.isFunction(subscription)) {
-	            subscription.call(self, publisher.on$);
+	            subscription.call(self, publisher.on$, publisher.prop$);
 	        }
 	    };
 	};
