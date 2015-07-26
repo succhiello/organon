@@ -749,6 +749,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            leave: this.onLeave$
 	        };
 
+	        View.call(this, properties);
+
 	        listenToFunc = this.listenTo;
 	        this.listenTo = function(name, publisher) {
 	            var filteredEvents = {
@@ -761,8 +763,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            };
 	            listenToFunc(name, filteredEvents);
 	        };
-
-	        View.call(this, properties);
 	    });
 
 	AppView.prototype.onLoad = function onLoad(f) {
