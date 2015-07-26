@@ -56,11 +56,7 @@ function _makeStream(isProp, config, refresher$, unsubscriber$, value, name) {
         stream = initialValueExists ? stream.toProperty(initialValue) : stream.toProperty();
     }
 
-    if (config.debug) {
-        stream.log(
-            'organon.Publisher[' + (config.name ? config.name : '') + '].' + (isProp ? 'prop' : 'on') + '$.' + name
-        );
-    }
-
-    return stream;
+    return config.debug ? stream.doLog(
+        'organon.Publisher[' + (config.name ? config.name : '') + '].' + (isProp ? 'prop' : 'on') + '$.' + name
+    ) : stream;
 }

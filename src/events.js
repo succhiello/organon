@@ -12,10 +12,7 @@ var Events = function Events(properties) {
         delete self.ev;
         self.ev = _.mapValues(events, function(thunk, name) {
             var stream = thunk.call(self, arg).takeUntil(self._unsubscriber);
-            if (debug) {
-                stream.log('organon.events.' + (properties.name ? properties.name + '.' : '') + name);
-            }
-            return stream;
+            return debug ? stream.doLog('organon.events.' + (properties.name ? properties.name + '.' : '') + name) : stream;
         });
     });
 };

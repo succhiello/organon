@@ -38,8 +38,8 @@ var pathToRegexp = require('path-to-regexp'),
         this.onRoute$ = routeState$.map('.current');
 
         if (properties.debug) {
-            this.onLeave$.log('organon.Router.onLeave$');
-            this.onRoute$.log('organon.Router.onRoute$');
+            this.onLeave$ = this.onLeave$.doLog('organon.Router.onLeave$');
+            this.onRoute$ = this.onRoute$.doLog('organon.Router.onRoute$');
         }
     };
 
