@@ -322,8 +322,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.onRoute$ = routeState$.map('.current');
 
 	        if (properties.debug) {
-	            this.onLeave$.log('organon.Router.onLeave$');
-	            this.onRoute$.log('organon.Router.onRoute$');
+	            this.onLeave$ = this.onLeave$.doLog('organon.Router.onLeave$');
+	            this.onRoute$ = this.onRoute$.doLog('organon.Router.onRoute$');
 	        }
 	    };
 
@@ -355,11 +355,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    paths = path.replace(/^#\//, '/').split('?');
 
-	    if (paths.length === 2) {
-	        paths[1].replace(/([^&=]+)=([^&]*)/g, function(_, k, v) {
-	            params[decodeURIComponent(k)] = decodeURIComponent(v);
-	        });
-	    }
+	    _.assign(
+	        params,
+	        _(paths).at(1).compact()
+	            .invoke('match', /([^&=]+)=([^&]*)/g).flatten()
+	            .map(function(queryString) {
+	                return _.map(queryString.split('='), decodeURIComponent);
+	            })
+	            .zipObject().value()
+	    );
 
 	    _.find(routes, function(route) {
 
@@ -487,10 +491,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        delete self.ev;
 	        self.ev = _.mapValues(events, function(thunk, name) {
 	            var stream = thunk.call(self, arg).takeUntil(self._unsubscriber);
-	            if (debug) {
-	                stream.log('organon.events.' + (properties.name ? properties.name + '.' : '') + name);
-	            }
-	            return stream;
+	            return debug ? stream.doLog('organon.events.' + (properties.name ? properties.name + '.' : '') + name) : stream;
 	        });
 	    });
 	};
@@ -748,6 +749,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            leave: this.onLeave$
 	        };
 
+	        View.call(this, properties);
+
 	        listenToFunc = this.listenTo;
 	        this.listenTo = function(name, publisher) {
 	            var filteredEvents = {
@@ -760,8 +763,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            };
 	            listenToFunc(name, filteredEvents);
 	        };
-
-	        View.call(this, properties);
 	    });
 
 	AppView.prototype.onLoad = function onLoad(f) {
@@ -1067,13 +1068,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        stream = initialValueExists ? stream.toProperty(initialValue) : stream.toProperty();
 	    }
 
-	    if (config.debug) {
-	        stream.log(
-	            'organon.Publisher[' + (config.name ? config.name : '') + '].' + (isProp ? 'prop' : 'on') + '$.' + name
-	        );
-	    }
-
-	    return stream;
+	    return config.debug ? stream.doLog(
+	        'organon.Publisher[' + (config.name ? config.name : '') + '].' + (isProp ? 'prop' : 'on') + '$.' + name
+	    ) : stream;
 	}
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))

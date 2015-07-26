@@ -38,8 +38,8 @@ var pathToRegexp = require('path-to-regexp'),
         this.onRoute$ = routeState$.map('.current');
 
         if (properties.debug) {
-            this.onLeave$.log('organon.Router.onLeave$');
-            this.onRoute$.log('organon.Router.onRoute$');
+            this.onLeave$ = this.onLeave$.doLog('organon.Router.onLeave$');
+            this.onRoute$ = this.onRoute$.doLog('organon.Router.onRoute$');
         }
     };
 
@@ -71,11 +71,15 @@ function parse(properties, routes, path) {
 
     paths = path.replace(/^#\//, '/').split('?');
 
-    if (paths.length === 2) {
-        paths[1].replace(/([^&=]+)=([^&]*)/g, function(_, k, v) {
-            params[decodeURIComponent(k)] = decodeURIComponent(v);
-        });
-    }
+    _.assign(
+        params,
+        _(paths).at(1).compact()
+            .invoke('match', /([^&=]+)=([^&]*)/g).flatten()
+            .map(function(queryString) {
+                return _.map(queryString.split('='), decodeURIComponent);
+            })
+            .zipObject().value()
+    );
 
     _.find(routes, function(route) {
 
