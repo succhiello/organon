@@ -43,7 +43,6 @@ module.exports = {
 
     AppData: AppData,
     util: require('./util'),
-    events: { Events: require('./events') },
     entity: { Entity: require('./entity') },
     presenter: { Presenter: require('./presenter') },
     repository: { Repository: require('./repository') },

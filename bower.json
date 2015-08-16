@@ -1,6 +1,6 @@
 {
   "name": "organon",
-  "version": "0.6.24",
+  "version": "0.7.0",
   "homepage": "https://github.com/xica/organon",
   "authors": [
     "XICA developer team <info@xica.net>"
@@ -19,12 +19,12 @@
     "tests"
   ],
   "dependencies": {
-    "lodash": "~2.4.1",
+    "lodash": "~3.10.1",
     "bacon": "~0.7.70",
     "bacon.jquery": "~0.4.9",
     "bacon.model": "~0.1.12",
     "bacon.matchers": "~0.4.0",
-    "html5-history-api": "~4.1.15",
-    "jquery": "1.10.2"
+    "html5-history-api": "~4.2.2",
+    "jquery": "~1.10.2"
   }
 }
