@@ -99,18 +99,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    AppData: AppData,
 	    util: __webpack_require__(9),
-	    events: { Events: __webpack_require__(10) },
-	    entity: { Entity: __webpack_require__(11) },
-	    presenter: { Presenter: __webpack_require__(12) },
-	    repository: { Repository: __webpack_require__(13) },
+	    entity: { Entity: __webpack_require__(10) },
+	    presenter: { Presenter: __webpack_require__(11) },
+	    repository: { Repository: __webpack_require__(12) },
 	    storage: {
-	        Storage: __webpack_require__(17),
-	        RESTApiStorage: __webpack_require__(14)
+	        Storage: __webpack_require__(16),
+	        RESTApiStorage: __webpack_require__(13)
 	    },
 	    view: {
-	        View: __webpack_require__(18),
-	        AppView: __webpack_require__(15),
-	        ChildView: __webpack_require__(16)
+	        View: __webpack_require__(17),
+	        AppView: __webpack_require__(14),
+	        ChildView: __webpack_require__(15)
 	    }
 	};
 
@@ -284,7 +283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
-	var pathToRegexp = __webpack_require__(21),
+	var pathToRegexp = __webpack_require__(20),
 	    Router = function Router(properties) {
 
 	        var routes = {},
@@ -477,37 +476,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Bacon, _) {'use strict';
-
-	var Events = function Events(properties) {
-
-	    var self = this,
-	        events = (properties.events || self.events) || {},
-	        debug = properties.debug || false;
-
-	    self._unsubscriber = new Bacon.Bus();
-
-	    self._unsubscriber.onValue(function(arg) {
-	        delete self.ev;
-	        self.ev = _.mapValues(events, function(thunk, name) {
-	            var stream = thunk.call(self, arg).takeUntil(self._unsubscriber);
-	            return debug ? stream.doLog('organon.events.' + (properties.name ? properties.name + '.' : '') + name) : stream;
-	        });
-	    });
-	};
-
-	Events.prototype.resetEvent = function resetEvent(arg) {
-	    this._unsubscriber.push(arg);
-	};
-
-	module.exports = Events;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5)))
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
 
 	module.exports = function Entity(initialValue) {
@@ -517,14 +485,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
 	var inherit = __webpack_require__(9).inherit,
-	    Publisher = __webpack_require__(19),
-	    Subscriber = __webpack_require__(20),
+	    Publisher = __webpack_require__(18),
+	    Subscriber = __webpack_require__(19),
 	    Presenter = inherit(Publisher, inherit(Subscriber, function Presenter(app, properties) {
 
 	        var self = this;
@@ -562,13 +530,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
 
 	var util = __webpack_require__(9),
-	    pathToRegexp = __webpack_require__(21),
+	    pathToRegexp = __webpack_require__(20),
 	    Repository = function Repository(storage, properties) {
 
 	        var defaultInterfaceDef = {
@@ -684,12 +652,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Storage = __webpack_require__(17),
+	var Storage = __webpack_require__(16),
 	    inherit = __webpack_require__(9).inherit,
 	    RESTApiStorage = inherit(Storage, function RESTApiStorage(properties) {
 
@@ -724,10 +692,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
 	    inherit = __webpack_require__(9).inherit,
 	    AppView = inherit(View, function AppView(app, properties) {
 
@@ -778,10 +746,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(18),
+	/* WEBPACK VAR INJECTION */(function(_) {var View = __webpack_require__(17),
 	    inherit = __webpack_require__(9).inherit,
 	    ChildView = inherit(View, function ChildView(parent, properties) {
 
@@ -818,7 +786,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -845,19 +813,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Bacon, _, $) {'use strict';
 
 	var inherit = __webpack_require__(9).inherit,
-	    Events = __webpack_require__(10), // for back compatibility
-	    Publisher = __webpack_require__(19),
-	    Subscriber = __webpack_require__(20),
-	    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
+	    Publisher = __webpack_require__(18),
+	    Subscriber = __webpack_require__(19),
+	    View = inherit(Publisher, inherit(Subscriber, function View(properties) {
 
 	        var self = this,
-	            ChildView = __webpack_require__(16),
+	            ChildView = __webpack_require__(15),
 	            renderEvent$ = new Bacon.Bus(),
 	            renderedEl$ = null,
 	            listenToFunc = null,
@@ -868,24 +835,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        properties = _.defaults(properties || {}, {
 	            debug: self.debug || false,
 	            childDefs: self.childDefs || {},
-	            widgets: self.widgets || {},
 	            ui: self.ui || {},
 	            template: self.template || '',
 	            name: self.name || '',
 	            el: self.el || '',
-	            presenter: self.presenter || null,
 	            initialize: self.initialize || null
 	        });
 
 	        self.render$ = new Bacon.Bus();
 
-	        self.presenter = properties.presenter;
 	        self._template = properties.template;
 	        self.name = properties.name;
 	        self.el = properties.el;
 	        self.$el = $(properties.el);
-
-	        Events.call(self, properties);
 
 	        self.onPreRender$ = renderEvent$.filter(_isState, PRE_RENDER).map('.data');
 	        self.onRender$ = renderEvent$.filter(_isState, RENDER).map('.data');
@@ -900,12 +862,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            renderEvent$.push({state: PRE_RENDER, data: data});
 
 	            self.renderTemplate(self._template, data);
-
-	            self.$ = _.mapValues(properties.widgets, function($el) {
-	                return _getEl.call(self, $el, self.$el);
-	            });
-
-	            self.resetEvent(self.$el);
 
 	            renderEvent$.push({state: RENDER, data: data});
 	            renderEvent$.push({state: POST_RENDER, data: data});
@@ -951,7 +907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // bad workaround...
 	        _.forEach(this.prop$, function(prop$) { prop$.assign(); });
 	        _.forEach(this.on$, function(on$) { on$.assign(); });
-	    })));
+	    }));
 
 	View.prototype.onPreRender = function onPreRender(f) {
 	    return this.onPreRender$.onValue(f.bind(this));
@@ -1007,7 +963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(5), __webpack_require__(6)))
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_, Bacon) {'use strict';
@@ -1076,7 +1032,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(4)))
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {'use strict';
@@ -1100,10 +1056,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArray = __webpack_require__(22);
+	var isArray = __webpack_require__(21);
 
 	/**
 	 * Expose `pathtoRegexp`.
@@ -1278,7 +1234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = Array.isArray || function (arr) {

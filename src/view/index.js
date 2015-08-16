@@ -1,10 +1,9 @@
 'use strict';
 
 var inherit = require('../util').inherit,
-    Events = require('../events'), // for back compatibility
     Publisher = require('../publisher'),
     Subscriber = require('../subscriber'),
-    View = inherit(Events, inherit(Publisher, inherit(Subscriber, function View(properties) {
+    View = inherit(Publisher, inherit(Subscriber, function View(properties) {
 
         var self = this,
             ChildView = require('./childView'),
@@ -18,24 +17,19 @@ var inherit = require('../util').inherit,
         properties = _.defaults(properties || {}, {
             debug: self.debug || false,
             childDefs: self.childDefs || {},
-            widgets: self.widgets || {},
             ui: self.ui || {},
             template: self.template || '',
             name: self.name || '',
             el: self.el || '',
-            presenter: self.presenter || null,
             initialize: self.initialize || null
         });
 
         self.render$ = new Bacon.Bus();
 
-        self.presenter = properties.presenter;
         self._template = properties.template;
         self.name = properties.name;
         self.el = properties.el;
         self.$el = $(properties.el);
-
-        Events.call(self, properties);
 
         self.onPreRender$ = renderEvent$.filter(_isState, PRE_RENDER).map('.data');
         self.onRender$ = renderEvent$.filter(_isState, RENDER).map('.data');
@@ -50,12 +44,6 @@ var inherit = require('../util').inherit,
             renderEvent$.push({state: PRE_RENDER, data: data});
 
             self.renderTemplate(self._template, data);
-
-            self.$ = _.mapValues(properties.widgets, function($el) {
-                return _getEl.call(self, $el, self.$el);
-            });
-
-            self.resetEvent(self.$el);
 
             renderEvent$.push({state: RENDER, data: data});
             renderEvent$.push({state: POST_RENDER, data: data});
@@ -101,7 +89,7 @@ var inherit = require('../util').inherit,
         // bad workaround...
         _.forEach(this.prop$, function(prop$) { prop$.assign(); });
         _.forEach(this.on$, function(on$) { on$.assign(); });
-    })));
+    }));
 
 View.prototype.onPreRender = function onPreRender(f) {
     return this.onPreRender$.onValue(f.bind(this));
