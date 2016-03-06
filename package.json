@@ -20,12 +20,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xica/organon.git"
+    "url": "https://github.com/succhiello/organon.git"
   },
-  "author": "XICA developer team <https://github.com/xica>",
+  "author": "Satoshi Ebihara <https://github.com/succhiello>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/xica/organon/issues"
+    "url": "https://github.com/succhiello/organon/issues"
   },
-  "homepage": "https://github.com/xica/organon"
+  "homepage": "https://github.com/succhiello/organon"
 }
